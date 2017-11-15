@@ -1,16 +1,7 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
-<#@ assembly name="System.Core.dll" #>
-<#@ assembly name="System.Data.dll" #>
-<#@ assembly name="System.Data.DataSetExtensions.dll" #>
-<#@ assembly name="System.Xml.dll" #>
-<#@ import namespace="System" #>
-<#@ import namespace="System.Xml" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Data" #>
-<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="CodeBuilder" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="System.IO" #>
 <#@ parameter type="CodeBuilder.DbNewTable" name="table" #>
 /// <summary>
 /// <#= table.DbTableInfo.TableRemark#>
