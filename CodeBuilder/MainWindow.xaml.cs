@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,13 @@ namespace CodeBuilder
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void btnTest_Click(object sender, RoutedEventArgs e)
+        {
+            var tableInfo = DbHelper.GetDbNewTable(ConfigurationManager.AppSettings["ConnStr"].ToString(), "NORTHWND", "Customers");
+            string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
+            txtCode.Text = codeDataAccess;
         }
     }
 }
