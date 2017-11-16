@@ -6,35 +6,13 @@
 /// <summary>
 /// <#= table.DbTableInfo.TableRemark#>
 /// <summary>
-public class <#=config.TableName#>
-{<# foreach(DbColumn column in table.DbColumnListInfo){#>
-/// <summary>
-/// <#=column.Remark.Replace("\r\n", "\n/// ")#>
-/// </summary>
-[Display(Name = "<#=column.ColumnName#>")]
-public <#= column.CSharpType#><# if(column.CommonType.IsValueType && column.IsNullable){#>?<#}#> <#=column.ColumnName#> { get; set; }<#}#>
- }
-
-
-string update = @"UPDATE <#=config.TableName#> SET <# int count = 0; foreach(DbColumn column in table.DbColumnListInfo){#>
-<#if (count++>0) this.Write(" , "); else this.Write(" ");#><#=column.ColumnName#> = @<#=column.ColumnName#><#if(!string.IsNullOrEmpty(column.Remark)) {#> <#="\t\t\t\t\t\t\t\t\t\t\t\t--" + column.Remark.Replace("\r\n", " ").Replace("\"","'")#> <#}#><#}#>
-WHERE;"
-
-
-var sqlParameterList = new List<SqlParameter>
-{<# count = 0; foreach(DbColumn column in table.DbColumnListInfo){#>
-<#if (count++>0) this.Write(" , "); else this.Write(" ");#>new SqlParameter("@<#=column.ColumnName#>", <#=config.ModelName#>.<#=column.ColumnName#><# if(column.CSharpType == "string" || (column.CommonType.IsValueType && column.IsNullable)){#> ?? (object)DBNull.Value<#}#>)<#}#>
-
-};
-
-ILog logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-logger.Debug(update<# count = 0; foreach(DbColumn column in table.DbColumnListInfo){#>
-.Replace("@<#=column.ColumnName#>", <#=config.ModelName#>.<#=column.ColumnName#><# if(column.CSharpType != "string"){#> + ""<#}#>)<#}#>
-);
-<#+
-  public class config
-  {
-  public static readonly string TableName="Customers";
-  public static readonly string ModelName="Customers";
-  }
-#>
+public class <#=table.DbTableInfo.TableName#>
+{
+<# foreach(DbColumn column in table.DbColumnListInfo){#>
+	/// <summary>
+	/// <#=column.Remark.Replace("\r\n", "\n")#>
+	/// </summary>
+	[Display(Name = "<#=column.ColumnName#>")]
+	public <#= column.CSharpType#><# if(column.CommonType.IsValueType && column.IsNullable){#>?<#}#> <#=column.ColumnName#> { get; set; }
+<#}#>
+}

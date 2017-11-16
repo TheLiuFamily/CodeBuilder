@@ -42,6 +42,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Lib\Microsoft.VisualStudio.TextTemplating.Interfaces.10.0.dll</HintPath>
     </Reference>
+    <Reference Include="MultiSelectTreeView, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MultiSelectTreeView.1.0.9\lib\net40\MultiSelectTreeView.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -63,6 +69,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="TypeTemplateSelector.cs" />
+    <Compile Include="ViewModel\TreeItemViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +105,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -109,10 +118,16 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\MultiSelectTreeView.ico" />
+    <Resource Include="Images\select_all_11.png" />
+    <Resource Include="Images\select_none_11.png" />
+    <Resource Include="Images\select_some_11.png" />
+    <Resource Include="Images\select_toggle_11.png" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.10.0.dll" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.Interfaces.10.0.dll" />
     <Content Include="Template\DataAccess.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <LastGenOutput>DataAccess.txt</LastGenOutput>
     </Content>
   </ItemGroup>
