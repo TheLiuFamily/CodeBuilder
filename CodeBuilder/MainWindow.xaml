@@ -159,7 +159,7 @@
 					-->
                     <HierarchicalDataTemplate DataType="{x:Type vm:TreeItemViewModel}" ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="Red" CornerRadius="3" Width="16" Height="16" SnapsToDevicePixels="True"/>
+                            <Image VerticalAlignment="Center" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,2,2"></Image>
                             <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Padding="4,0,2,0"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>

@@ -1,4 +1,5 @@
-﻿using CodeBuilder.ViewModel;
+﻿using CodeBuilder.Common;
+using CodeBuilder.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -28,17 +29,18 @@ namespace CodeBuilder
         //    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
         //}
 
+
         public MainWindow()
         {
             InitializeComponent();
 
             // Create some example nodes to play with
             var rootNode = new TreeItemViewModel(null, false) { DisplayName = "rootNode" };
-            var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true };
-            var node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2" };
-            var node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!" };
-            var node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false };
-            var node13 = new TreeItemViewModel(node1, false) { DisplayName = "element13" };
+            var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true, Icon= ImageClass.Edit2 };
+            var node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2", Icon = ImageClass.History2 };
+            var node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!", Icon = ImageClass.Edit2 };
+            var node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false, Icon = ImageClass.Edit2 };
+            var node13 = new TreeItemViewModel(node1, false) { DisplayName = "element13", Icon = ImageClass.Edit2 };
             var node131 = new TreeItemViewModel(node13, false) { DisplayName = "element131" };
             var node132 = new TreeItemViewModel(node13, false) { DisplayName = "element132" };
             var node14 = new TreeItemViewModel(node1, false) { DisplayName = "element14 with colours" };

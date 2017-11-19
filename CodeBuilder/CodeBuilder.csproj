@@ -69,6 +69,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\ImageClass.cs" />
+    <Compile Include="Common\Utils.cs" />
     <Compile Include="TypeTemplateSelector.cs" />
     <Compile Include="ViewModel\TreeItemViewModel.cs" />
     <Page Include="MainWindow.xaml">
@@ -123,6 +125,26 @@
     <Resource Include="Images\select_none_11.png" />
     <Resource Include="Images\select_some_11.png" />
     <Resource Include="Images\select_toggle_11.png" />
+    <Resource Include="Images\Accelerator2.png" />
+    <Resource Include="Images\Collapsed.png" />
+    <Resource Include="Images\Cross2.png" />
+    <Resource Include="Images\Edit2.png" />
+    <Resource Include="Images\Expanded.png" />
+    <Resource Include="Images\Gear2.png" />
+    <Resource Include="Images\History2.png" />
+    <Resource Include="Images\List2.gif" />
+    <Resource Include="Images\new2.png" />
+    <Resource Include="Images\Page2.png" />
+    <Resource Include="Images\Proxy2.png" />
+    <Resource Include="Images\Refresh2.png" />
+    <Resource Include="Images\Schedule2.png" />
+    <Resource Include="Images\Server.gif" />
+    <Resource Include="Images\Server2.png" />
+    <Resource Include="Images\SQLMon.ico" />
+    <Resource Include="Images\SSMS.ico" />
+    <Resource Include="Images\SSMS2.ico" />
+    <Resource Include="Images\SSMS2.png" />
+    <Resource Include="Images\Table2.gif" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.10.0.dll" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.Interfaces.10.0.dll" />
     <Content Include="Template\DataAccess.tt">

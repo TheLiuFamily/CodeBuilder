@@ -220,6 +220,8 @@ namespace CodeBuilder.ViewModel
 			}
 		}
 
+
+        public string Icon { get; set; }
 		#endregion ViewModelBase
 
 		#region INotifyPropertyChanged members
