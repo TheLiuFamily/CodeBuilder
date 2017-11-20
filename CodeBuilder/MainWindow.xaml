@@ -1,15 +1,16 @@
-﻿<Window
+﻿<Controls:MetroWindow
+    xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:IconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 	x:Class="CodeBuilder.MainWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:Controls="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
+	xmlns:Controls_TreeView="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
 	xmlns:demo="clr-namespace:CodeBuilder"
 	xmlns:vm="clr-namespace:CodeBuilder.ViewModel"
 	xmlns:sys="clr-namespace:System;assembly=mscorlib"
 	TextOptions.TextFormattingMode="Display"
 	UseLayoutRounding="True"
-	Title="代码生成器"
-	Icon="/CodeBuilder;component/Images/MultiSelectTreeView.ico"
+	Title="CodeBuilder"
 	Height="488" Width="1000"
 	Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
 	ResizeMode="CanResizeWithGrip">
@@ -21,7 +22,7 @@
         <DataTemplate x:Key="EditTemplate" DataType="{x:Type vm:TreeItemViewModel}">
             <StackPanel Orientation="Horizontal">
                 <Border Background="YellowGreen" CornerRadius="3" Width="16" Height="16"/>
-                <Controls:EditTextBox
+                <Controls_TreeView:EditTextBox
 					Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 					Padding="2,0,0,0"/>
             </StackPanel>
@@ -55,9 +56,39 @@
         </demo:TypeTemplateSelector>
 
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
-    </Window.Resources>
 
+       
+        
+    </Window.Resources>
+    <Controls:MetroWindow.LeftWindowCommands>
+        <Controls:WindowCommands ShowLastSeparator="False">
+            <Button>
+                <IconPacks:PackIconModern Width="22"
+                                          Height="22"
+                                          Kind="PageCode" />
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.LeftWindowCommands>
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands ShowLastSeparator="False">
+            <Button
+                    ToolTip="login sql" x:Name="btnLogin">
+                <IconPacks:PackIconModern Width="22"
+                                          Height="22"
+                                          Kind="Settings" />
+            </Button>
+            <Button
+                    ToolTip="Change Skin" x:Name="btnSkin">
+            <IconPacks:PackIconModern Width="22"
+                                          Height="22"
+                                          Kind="People" />
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+    
     <Grid Margin="12,8,12,12">
+
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" x:Name="FirstColumn"/>
             <ColumnDefinition Width="Auto"/>
@@ -65,23 +96,62 @@
         </Grid.ColumnDefinitions>
 
         <DockPanel Margin="0,0,12,0">
+            <Popup x:Name="loginSql" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnLogin}"  
+             StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" AllowsTransparency="True" Placement="Left" VerticalOffset="25">
+                <Border BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1"   
+                  CornerRadius="8" Height="184" Width="450">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" x:Name="FirstRow"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*" x:Name="LastRow"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                            <Label Content="Server:" Grid.Column="0"></Label>
+                        <ComboBox x:Name="cboServers" Grid.Column="1"  Margin="3" />
+                        <Label Content="Auth:" Grid.Column="0" Grid.Row="1"></Label>
+                        <ComboBox x:Name="cboAuthTypes" Grid.Column="1" Grid.Row="1" Margin="3" />
+                        <Label Content="User:" Grid.Column="0" Grid.Row="2"></Label>
+                        <TextBox x:Name="txtUserName" Grid.Column="1" Grid.Row="2" Margin="3"></TextBox>
+                        <Label Content="Password:" Grid.Column="0" Grid.Row="3"></Label>
+                        <PasswordBox x:Name="txtPassword" Grid.Column="1" Grid.Row="3" Margin="3"></PasswordBox>
+                        <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Margin="180,8,8,0">
+                            <Button x:Name="btnTest" Content="Test Connection" Margin="2" Click="OnTestConnectionClick"></Button>
+                            <Button x:Name="btnSave" Content="Save" Margin="2" Width="60"></Button>
+                            <Button x:Name="btnCancel" Content="Cancel" Margin="2" Width="60"></Button>
+                        </DockPanel>
+                    </Grid>
+                </Border>
+            </Popup>
+            <Popup x:Name="skinUI" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnSkin}"  
+             StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" AllowsTransparency="True" Placement="Left" VerticalOffset="25">
+                <Border x:Name="bdSkin" BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1"   
+                  CornerRadius="8" Height="170" Width="450">
+                    <WrapPanel x:Name="skinPanel"/>
+                </Border>
+            </Popup>
             <TextBlock DockPanel.Dock="Top" Style="{StaticResource FirstCaption}">The TreeView control</TextBlock>
-            <Controls:MultiSelectTreeView
+            <Controls_TreeView:MultiSelectTreeView
 				Name="TheTreeView"
 				ItemsSource="{Binding Children}"
 				PreviewSelectionChanged="TheTreeView_PreviewSelectionChanged">
 
-                <Controls:MultiSelectTreeView.ContextMenu>
+                <Controls_TreeView:MultiSelectTreeView.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Expand" Click="ExpandMenuItem_Click"/>
                         <Separator/>
                         <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
                         <MenuItem Header="Delete" Click="DeleteMenuItem_Click"/>
                     </ContextMenu>
-                </Controls:MultiSelectTreeView.ContextMenu>
+                </Controls_TreeView:MultiSelectTreeView.ContextMenu>
 
-                <Controls:MultiSelectTreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
+                <Controls_TreeView:MultiSelectTreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type Controls_TreeView:MultiSelectTreeViewItem}">
                         <!--
 						Here the TreeViewItem's properties are connected with the ViewModel class.
 						Basically you would make all MultiSelectTreeViewItem properties accessible
@@ -151,9 +221,9 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                </Controls:MultiSelectTreeView.ItemContainerStyle>
+                </Controls_TreeView:MultiSelectTreeView.ItemContainerStyle>
 
-                <Controls:MultiSelectTreeView.Resources>
+                <Controls_TreeView:MultiSelectTreeView.Resources>
                     <!--
 					Here the general item appearance is defined, for the ViewModel.TreeItemViewModel type
 					-->
@@ -163,8 +233,10 @@
                             <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Padding="4,0,2,0"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
-                </Controls:MultiSelectTreeView.Resources>
-            </Controls:MultiSelectTreeView>
+                </Controls_TreeView:MultiSelectTreeView.Resources>
+            </Controls_TreeView:MultiSelectTreeView>
         </DockPanel>
     </Grid>
-</Window>
+
+
+</Controls:MetroWindow>

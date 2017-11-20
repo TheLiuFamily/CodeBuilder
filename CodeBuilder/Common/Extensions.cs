@@ -30,18 +30,18 @@ namespace CodeBuilder.Common
             return content.Trim();
         }
 
-        public static string ParseObjectName(this string line)
-        {
-            line = SubstringTill(line, Utils.MultiCommentStart);
-            line = SubstringTill(line, Utils.SingleCommentStart);
-            line = line.Trim('[', ']', ';', ' ');
-            var schema = QueryEngine.DefaultSchema + QueryEngine.Dot;
-            if (line.StartsWith(schema))
-                line = line.Substring(schema.Length);
-            line = SubstringTill(line, " ");
-            line = SubstringTill(line, "(");
-            return line.Trim();
-        }
+        //public static string ParseObjectName(this string line)
+        //{
+        //    line = SubstringTill(line, Utils.MultiCommentStart);
+        //    line = SubstringTill(line, Utils.SingleCommentStart);
+        //    line = line.Trim('[', ']', ';', ' ');
+        //    var schema = QueryEngine.DefaultSchema + QueryEngine.Dot;
+        //    if (line.StartsWith(schema))
+        //        line = line.Substring(schema.Length);
+        //    line = SubstringTill(line, " ");
+        //    line = SubstringTill(line, "(");
+        //    return line.Trim();
+        //}
 
         public static string SubstringTill(this string line, string separator)
         {

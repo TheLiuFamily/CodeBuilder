@@ -1,5 +1,8 @@
 ﻿using CodeBuilder.Common;
+using CodeBuilder.Logic;
 using CodeBuilder.ViewModel;
+using MahApps.Metro;
+using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -21,7 +24,7 @@ namespace CodeBuilder
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         //private void btnTest_Click(object sender, RoutedEventArgs e)
         //{
@@ -29,14 +32,92 @@ namespace CodeBuilder
         //    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
         //}
 
+        /// <summary>  
+        /// 实现换肤  
+        /// </summary>  
+        private void ChangeSkin(object obj, RoutedEventArgs e)
+        {
+            if (e.OriginalSource is Button)
+            {
+                var theme = (e.OriginalSource as Button).Name;
+                ChangeTheme(theme);
+
+                //记录换肤，下次启动直接使用
+                Configuration cf = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                cf.AppSettings.Settings["Theme"].Value = theme;
+                cf.Save();
+            }
+        }
+        
+        /// <summary>  
+        /// 初始化所有皮肤控件  
+        /// </summary>  
+        private void InitSkins()
+        {
+            var accents = ThemeManager.Accents;
+            Style btnStyle = App.Current.FindResource("btnSkinStyle") as Style;
+            foreach (var accent in accents)
+            {
+                //新建换肤按钮  
+                Button btnskin = new Button();
+                btnskin.Style = btnStyle;
+                btnskin.Name = accent.Name;
+                SolidColorBrush scb = accent.Resources["AccentColorBrush"] as SolidColorBrush;
+                btnskin.Background = scb;
+                skinPanel.Children.Add(btnskin);
+            }
+        }
+
+        public AuthTypes AuthType
+        {
+            get { return (AuthTypes)cboAuthTypes.SelectedItem; }
+            set { cboAuthTypes.SelectedItem = value; }
+        }
+
+        public string Server
+        {
+            get { return cboServers.Text; }
+            set { cboServers.Text = value; }
+        }
+
+        public string UserName
+        {
+            get { return txtUserName.Text; }
+            set { txtUserName.Text = value; }
+        }
+
+        public string Password
+        {
+            get { return txtPassword.Password; }
+            set { txtPassword.Password = value; }
+        }
+
+        private ServerInfo GetServerInfo
+        {
+            get
+            {
+                return new ServerInfo { AuthType = this.AuthType, Server = this.Server, User = this.UserName, Password = this.Password, Database = "master" };
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
 
+            Enum.GetValues(typeof(AuthTypes)).Cast<AuthTypes>().ForEach((s) => cboAuthTypes.Items.Add(s));
+            cboAuthTypes.SelectedIndex = 0;
+
+            btnSkin.Click += (s, e) => skinUI.IsOpen = true;
+            btnLogin.Click += (s, e) => loginSql.IsOpen = true;
+
+            skinPanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeSkin));
+            InitSkins();
+
+            ChangeTheme(ConfigurationManager.AppSettings["Theme"]);
+
             // Create some example nodes to play with
             var rootNode = new TreeItemViewModel(null, false) { DisplayName = "rootNode" };
-            var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true, Icon= ImageClass.Edit2 };
+            var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true, Icon = ImageClass.Edit2 };
             var node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2", Icon = ImageClass.History2 };
             var node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!", Icon = ImageClass.Edit2 };
             var node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false, Icon = ImageClass.Edit2 };
@@ -66,6 +147,37 @@ namespace CodeBuilder
             node1.IsSelected = true;
             node13.IsSelected = true;
             node14.IsExpanded = true;
+        }
+
+        private static void ChangeTheme(string theme)
+        {
+            Accent accent = ThemeManager.GetAccent(theme);
+            App.Current.Resources.MergedDictionaries.Last().Source = accent.Resources.Source;
+        }
+
+
+
+        private void OnTestConnectionClick(object sender, RoutedEventArgs e)
+        {
+            if (IsSqlServer2005OrAbove())
+                MessageBox.ShowDialog("Connection is successful.", this);
+        }
+
+        private bool IsSqlServer2005OrAbove()
+        {
+            try
+            {
+                var version = QueryEngine.GetServerVersion(GetServerInfo);
+                var is2005OrAbove = version >= 9;
+                if (!is2005OrAbove)
+                    MessageBox.ShowDialog(string.Format("Current version {0}, only SQL Server 2005 or above is supported.", version), this);
+                return is2005OrAbove;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.ShowDialog(ex.Message, this);
+                return false;
+            }
         }
 
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
