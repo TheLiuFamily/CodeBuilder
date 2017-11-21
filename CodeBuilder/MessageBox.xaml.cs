@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace CodeBuilder
     /// <summary>
     /// MessageBox.xaml 的交互逻辑
     /// </summary>
-    public partial class MessageBox : Window
+    public partial class MessageBox : MetroWindow
     {
         private MessageBox()
         {
@@ -29,7 +30,7 @@ namespace CodeBuilder
         /// </summary>
         /// <param name="message">消息</param>
         /// <param name="owner">父级窗体</param>
-        public static void ShowDialog(string message, Window owner)
+        public static bool? ShowDialog(string message, Window owner)
         {
             //蒙板
             Grid layer = new Grid() { Background = new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)) };
@@ -46,7 +47,7 @@ namespace CodeBuilder
             //弹出消息框
             MessageBox box = new MessageBox() { Owner = owner };
             box.tbc_message.Text = message;
-            box.ShowDialog();
+            return box.ShowDialog();
         }
 
         /// <summary>
@@ -62,6 +63,11 @@ namespace CodeBuilder
             grid.Children.Remove(original);
             //赋给父级窗体
             this.Owner.Content = original;
+        }
+
+        private void Window_Closed(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

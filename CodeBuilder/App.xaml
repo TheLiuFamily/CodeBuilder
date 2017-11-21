@@ -22,7 +22,6 @@
                 <Setter Property="Height" Value="45"/>
                 <Setter Property="Margin" Value="5"/>
             </Style>
-            
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />

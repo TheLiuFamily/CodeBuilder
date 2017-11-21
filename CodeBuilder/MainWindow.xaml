@@ -96,38 +96,6 @@
         </Grid.ColumnDefinitions>
 
         <DockPanel Margin="0,0,12,0">
-            <Popup x:Name="loginSql" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnLogin}"  
-             StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" AllowsTransparency="True" Placement="Left" VerticalOffset="25">
-                <Border BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1"   
-                  CornerRadius="8" Height="184" Width="450">
-                    <Grid Margin="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" x:Name="FirstRow"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*" x:Name="LastRow"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                            <Label Content="Server:" Grid.Column="0"></Label>
-                        <ComboBox x:Name="cboServers" Grid.Column="1"  Margin="3" />
-                        <Label Content="Auth:" Grid.Column="0" Grid.Row="1"></Label>
-                        <ComboBox x:Name="cboAuthTypes" Grid.Column="1" Grid.Row="1" Margin="3" />
-                        <Label Content="User:" Grid.Column="0" Grid.Row="2"></Label>
-                        <TextBox x:Name="txtUserName" Grid.Column="1" Grid.Row="2" Margin="3"></TextBox>
-                        <Label Content="Password:" Grid.Column="0" Grid.Row="3"></Label>
-                        <PasswordBox x:Name="txtPassword" Grid.Column="1" Grid.Row="3" Margin="3"></PasswordBox>
-                        <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Margin="180,8,8,0">
-                            <Button x:Name="btnTest" Content="Test Connection" Margin="2" Click="OnTestConnectionClick"></Button>
-                            <Button x:Name="btnSave" Content="Save" Margin="2" Width="60"></Button>
-                            <Button x:Name="btnCancel" Content="Cancel" Margin="2" Width="60"></Button>
-                        </DockPanel>
-                    </Grid>
-                </Border>
-            </Popup>
             <Popup x:Name="skinUI" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnSkin}"  
              StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" AllowsTransparency="True" Placement="Left" VerticalOffset="25">
                 <Border x:Name="bdSkin" BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1"   

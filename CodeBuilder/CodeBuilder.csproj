@@ -86,6 +86,9 @@
     <Compile Include="Common\Utils.cs" />
     <Compile Include="Logic\QueryEngine.cs" />
     <Compile Include="Logic\Settings.cs" />
+    <Compile Include="ConnectionDialog.xaml.cs">
+      <DependentUpon>ConnectionDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MessageBox.xaml.cs">
       <DependentUpon>MessageBox.xaml</DependentUpon>
     </Compile>
@@ -106,6 +109,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ConnectionDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MessageBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

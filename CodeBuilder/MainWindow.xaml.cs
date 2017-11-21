@@ -68,47 +68,15 @@ namespace CodeBuilder
             }
         }
 
-        public AuthTypes AuthType
-        {
-            get { return (AuthTypes)cboAuthTypes.SelectedItem; }
-            set { cboAuthTypes.SelectedItem = value; }
-        }
-
-        public string Server
-        {
-            get { return cboServers.Text; }
-            set { cboServers.Text = value; }
-        }
-
-        public string UserName
-        {
-            get { return txtUserName.Text; }
-            set { txtUserName.Text = value; }
-        }
-
-        public string Password
-        {
-            get { return txtPassword.Password; }
-            set { txtPassword.Password = value; }
-        }
-
-        private ServerInfo GetServerInfo
-        {
-            get
-            {
-                return new ServerInfo { AuthType = this.AuthType, Server = this.Server, User = this.UserName, Password = this.Password, Database = "master" };
-            }
-        }
+      
 
         public MainWindow()
         {
             InitializeComponent();
 
-            Enum.GetValues(typeof(AuthTypes)).Cast<AuthTypes>().ForEach((s) => cboAuthTypes.Items.Add(s));
-            cboAuthTypes.SelectedIndex = 0;
-
+         
             btnSkin.Click += (s, e) => skinUI.IsOpen = true;
-            btnLogin.Click += (s, e) => loginSql.IsOpen = true;
+            btnLogin.Click += (s, e) => ConnectionDialog.ShowDialog(null, this);
 
             skinPanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeSkin));
             InitSkins();
@@ -155,30 +123,9 @@ namespace CodeBuilder
             App.Current.Resources.MergedDictionaries.Last().Source = accent.Resources.Source;
         }
 
+     
 
-
-        private void OnTestConnectionClick(object sender, RoutedEventArgs e)
-        {
-            if (IsSqlServer2005OrAbove())
-                MessageBox.ShowDialog("Connection is successful.", this);
-        }
-
-        private bool IsSqlServer2005OrAbove()
-        {
-            try
-            {
-                var version = QueryEngine.GetServerVersion(GetServerInfo);
-                var is2005OrAbove = version >= 9;
-                if (!is2005OrAbove)
-                    MessageBox.ShowDialog(string.Format("Current version {0}, only SQL Server 2005 or above is supported.", version), this);
-                return is2005OrAbove;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.ShowDialog(ex.Message, this);
-                return false;
-            }
-        }
+      
 
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
         {
