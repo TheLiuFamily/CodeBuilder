@@ -93,7 +93,7 @@
       <DependentUpon>MessageBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="TypeTemplateSelector.cs" />
-    <Compile Include="ViewModel\TreeItemViewModel.cs" />
+    <Compile Include="ViewModel\TreeNode.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -149,7 +149,6 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\MultiSelectTreeView.ico" />
     <Resource Include="Images\select_all_11.png" />
     <Resource Include="Images\select_none_11.png" />
     <Resource Include="Images\select_some_11.png" />
@@ -174,6 +173,7 @@
     <Resource Include="Images\SSMS2.ico" />
     <Resource Include="Images\SSMS2.png" />
     <Resource Include="Images\Table2.gif" />
+    <Resource Include="Images\Folder.png" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.10.0.dll" />
     <Content Include="Lib\Microsoft.VisualStudio.TextTemplating.Interfaces.10.0.dll" />
     <Content Include="Template\DataAccess.tt">

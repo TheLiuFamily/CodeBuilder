@@ -5,9 +5,13 @@ using MahApps.Metro;
 using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,12 +30,91 @@ namespace CodeBuilder
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
+
+        #region 常量
+        private const string KeyTables = "|Tables";
+        private const string KeySPs = "|SPs";
+        private const string KeyViews = "|Views";
+        private const string KeyFunctions = "|Functions";
+        private const string KeyAssemblies = "|Assemblies";
+        private const string KeyTriggers = "|Triggers";
+        private const string KeyIndexes = "|Indexes";
+        private const string KeyJobs = "|Jobs";
+        private const string KeyTable = "|Table";
+        private const string KeySp = "|SP";
+        private const string KeyView = "|View";
+        private const string KeyFunction = "|Function";
+        private const string KeyTrigger = "|Trigger";
+        private const string KeyAssembly = "|Assembly";
+        private const string KeyDatabase = "|Database";
+        private const string KeyServer = "|Server";
+        private const string KeyLoading = "|Loading";
+        private const string KeyName = "Name";
+        private const string KeySchemaName = "SchemaName";
+        private const string KeyState = "State";
+        private const string KeySpaceUsed = "SpaceUsed";
+        private const string KeyCount = "Count";
+        private const string KeyCreateDate = "CreateDate";
+        private const string KeyModifyDate = "ModifyDate";
+        private const string KeyPath = "Path";
+        private const string KeyValue = "Value";
+        private const string KeyType = "Type";
+        private const string KeyText = "Text";
+        private const string CommandRefresh = "tbRefresh";
+        private const string CommandActivityStatuses = "tcbActivityStatuses";
+        private const string CommandJobs = "Jobs";
+        private const string CommandProcesses = "Processes";
+        private const string CommandDelete = "Delete";
+        private const string CommandVisualize = "Visualize";
+        private const int ResultSamplePrefix = 15;
+        private const string AnalysisColumnRule = "Rule";
+        private const string AnalysisColumnObject = "Object";
+        private const string AnalysisColumnReference = "Reference";
+        private const string AnalysisColumnCurrent = "Current";
+        private const string AnalysisColumnFactor = "Factor";
+        private const string AnalysisColumnSuggestion = "Suggestion";
+        private const string SizePercentage = "%";
+        private const int ImageIndexOnline = 5;
+
+        private const int HealthIndexCagtegory = 0;
+        private const int HealthIndexName = 1;
+        private const int HealthIndexCurrent = 2;
+        private const int HealthIndexReference = 3;
+        private const int HealthIndexDescription = 4;
+        private const int HealthIndexObject = 5;
+
+        private WorkModes _currentWorkMode = WorkModes.Summary;
+
+        private Timer _tmrActivitiesRefresh;
+        private readonly Timer _tmrStartup;
+        private bool _isUpdating;
+        private ObjectModes _currentObjectMode = ObjectModes.None;
+        private ObjectModes _previousObjectMode = ObjectModes.None;
+        private string _currentDatabase = string.Empty;
+        private string _currentObjectScript = string.Empty;
+        private string _currentObjectName = string.Empty;
+        private string _currentObjectType = string.Empty;
+        private string _previousDatabase = string.Empty;
+        private string _previousObjectType = string.Empty;
+        private int _userQueryCount;
+        private bool _isInSearch;
+        private bool _isSearching;
+        private int _currentSearchIndex;
+        private ServerInfo _currentServerInfo = new ServerInfo();
+        private ServerInfo _previousServerInfo = new ServerInfo();
+        private MonitorItem _currentMonitorItem;
+        private int _healthPrevColIndex = -1;
+        private ListSortDirection _healthPrevSortDirection = ListSortDirection.Ascending;
+        private int _analysisPrevColIndex = -1;
+        private ListSortDirection _analysisPrevSortDirection = ListSortDirection.Ascending;
+        #endregion
         //private void btnTest_Click(object sender, RoutedEventArgs e)
         //{
         //    var tableInfo = DbHelper.GetDbNewTable(ConfigurationManager.AppSettings["ConnStr"].ToString(), "NORTHWND", "Customers");
         //    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
         //}
-
+        private readonly ServerInfo _server = null;
+        private ServerInfo info;
         /// <summary>  
         /// 实现换肤  
         /// </summary>  
@@ -48,7 +131,7 @@ namespace CodeBuilder
                 cf.Save();
             }
         }
-        
+
         /// <summary>  
         /// 初始化所有皮肤控件  
         /// </summary>  
@@ -67,54 +150,81 @@ namespace CodeBuilder
                 skinPanel.Children.Add(btnskin);
             }
         }
-
-      
+        public void LoginSql(object sender, RoutedEventArgs e)
+        {
+            var dlg = new ConnectionDialog(null, this);
+            if (dlg.UShowDialog() == true)
+            {
+                var server = dlg.Server;
+                ServerInfo item;
+                if (info == null)
+                    item = Settings.Instance.FindServer(server, dlg.UserName);
+                else
+                    item = Settings.Instance.FindServer(info.Server, dlg.UserName);
+                var isNew = false;
+                if (item == null)
+                {
+                    item = new ServerInfo();
+                    Settings.Instance.Servers.Add(item);
+                    isNew = true;
+                }
+                item.AuthType = dlg.AuthType;
+                item.Server = server;
+                item.Password = dlg.Password;
+                item.User = dlg.UserName;
+                Settings.Instance.Save();
+                if (info != null)
+                {
+                    info.AuthType = item.AuthType;
+                    info.Password = item.Password;
+                    info.Server = item.Server;
+                    info.User = item.User;
+                }
+                if (isNew)
+                    LoadServer(item);
+                else if (info == null)
+                    MessageBox.ShowDialog(string.Format("Server [{0}] already exists", item.Server), this);
+                else
+                {
+                    foreach (TreeNode node in TheTreeView.Items)
+                    {
+                        if (node.DisplayName == item.Server)
+                        {
+                            node.IsSelected = true;
+                        }
+                    }
+                }
+            }
+        }
+        private void LoadServer(ServerInfo info)
+        {
+            _currentServerInfo = info;
+            var state = new ServerState { IsAzure = info.IsAzure, AuthType = info.AuthType, Server = info.Server, Database = info.Database, User = info.User, Password = info.Password, IsReady = false, Key = KeyServer };
+            var treeNode = new TreeNode(null, false) { DisplayName = "RootNode", Tag = state };
+            var node = new TreeNode(treeNode, false) { DisplayName = info.Server, Tag = state, Icon = ImageClass.Server2 };
+            var node1 = new TreeNode(node, false) { DisplayName = "Loading...", Tag = new ServerState { Key = KeyLoading } };
+            treeNode.Children.Add(node);
+            node.Children.Add(node1);
+            DataContext = treeNode;
+        }
 
         public MainWindow()
         {
             InitializeComponent();
 
-         
+
             btnSkin.Click += (s, e) => skinUI.IsOpen = true;
-            btnLogin.Click += (s, e) => ConnectionDialog.ShowDialog(null, this);
+            btnLogin.Click += LoginSql;
 
             skinPanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeSkin));
             InitSkins();
 
             ChangeTheme(ConfigurationManager.AppSettings["Theme"]);
 
-            // Create some example nodes to play with
-            var rootNode = new TreeItemViewModel(null, false) { DisplayName = "rootNode" };
-            var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true, Icon = ImageClass.Edit2 };
-            var node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2", Icon = ImageClass.History2 };
-            var node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!", Icon = ImageClass.Edit2 };
-            var node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false, Icon = ImageClass.Edit2 };
-            var node13 = new TreeItemViewModel(node1, false) { DisplayName = "element13", Icon = ImageClass.Edit2 };
-            var node131 = new TreeItemViewModel(node13, false) { DisplayName = "element131" };
-            var node132 = new TreeItemViewModel(node13, false) { DisplayName = "element132" };
-            var node14 = new TreeItemViewModel(node1, false) { DisplayName = "element14 with colours" };
-            var node15 = new TreeItemViewModel(node1, true) { DisplayName = "element15 (lazy loading)" };
-
-            // Add them all to each other
-            rootNode.Children.Add(node1);
-            rootNode.Children.Add(node2);
-            node1.Children.Add(node11);
-            node1.Children.Add(node12);
-            node1.Children.Add(node13);
-            node13.Children.Add(node131);
-            node13.Children.Add(node132);
-            node1.Children.Add(node14);
-            node1.Children.Add(node15);
-
-            // Use the root node as the window's DataContext to allow data binding. The TreeView
-            // will use the Children property of the DataContext as list of root tree items. This
-            // property happens to be the same as each item DataTemplate uses to find its subitems.
-            DataContext = rootNode;
-
-            // Preset some node states
-            node1.IsSelected = true;
-            node13.IsSelected = true;
-            node14.IsExpanded = true;
+            if(Settings.Instance.Servers.FirstOrDefault() != null)
+            {
+                LoadServer(Settings.Instance.Servers.First());
+            }
         }
 
         private static void ChangeTheme(string theme)
@@ -123,161 +233,301 @@ namespace CodeBuilder
             App.Current.Resources.MergedDictionaries.Last().Source = accent.Resources.Source;
         }
 
-     
 
-      
+
+
 
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
         {
-          
-                // Selection is not locked, apply other conditions.
-                // Require all selected items to be of the same type. If an item of another data
-                // type is already selected, don't include this new item in the selection.
-                if (e.Selecting && TheTreeView.SelectedItems.Count > 0)
+            new Thread(ShowObjects).Start(e);
+        }
+
+        private void ShowObjects(object e)
+        {
+            this.BeginInvoke(new Action(delegate ()
+            {
+                var arg = e as PreviewSelectionChangedEventArgs;
+                var item = arg.Item as TreeNode;
+                var state = item.Tag as ServerState;
+                if (item == null || (state != null && !state.IsReady))
+                    arg.CancelThis = !ShowObjects(item);
+            }));
+        }
+        private TreeNode GetRootNode(TreeNode node)
+        {
+            var root = node;
+            while (root != null && root.Parent != null)
+            {
+                root = root.Parent;
+            }
+            return root;
+        }
+        internal ServerInfo CurrentServerInfo
+        {
+            get { return _currentServerInfo; }
+        }
+
+        private DataTable GetDatabaseInfo(string database)
+        {
+            return QueryEngine.GetDatabaseInfo(DefaultServerInfo, database);
+        }
+
+        private bool CheckCurrentServer()
+        {
+            return CurrentServerInfo != null && !string.IsNullOrEmpty(CurrentServerInfo.Server);
+        }
+        private SqlConnection NewConnection
+        {
+            get { return SqlHelper.CreateNewConnection(DefaultServerInfo); }
+        }
+
+        private bool LoadServer(TreeNode node)
+        {
+            if (CheckCurrentServer())
+            {
+                _currentDatabase = string.Empty;
+                try
                 {
-                    e.CancelThis = e.Item.GetType() != TheTreeView.SelectedItems[0].GetType();
+                    var result = SqlHelper.ExecuteScalar("SELECT @@version", DefaultServerInfo);
+                    var version = result != null ? result.ToString() : "(N/A)";
+                    var lines = version.Split('\t').ToList();
+                    if (lines.Count > 1)
+                    {
+                        var line = lines[1];
+                        DateTime date;
+                        if (DateTime.TryParse(line, out date))
+                        {
+                            lines.RemoveAt(1);
+                        }
+                    }
+                    var serverState = node.Tag as ServerState;
+                    serverState.IsAzure = lines[0].IndexOf("Azure", StringComparison.InvariantCultureIgnoreCase) != -1;
+
+                    result = SqlHelper.ExecuteScalar(string.Format("SELECT {0}", serverState.IsAzure ? "@@SERVERNAME" : "@@SERVICENAME"), DefaultServerInfo);
+                    var serviceName = result != null ? result.ToString() : "(N/A)";
+
+                    result = SqlHelper.ExecuteScalar("SELECT ServerProperty('ProcessID')", DefaultServerInfo);
+                    var processId = result != null ? result.ToString() : "(N/A)";
+
+                    using (var connection = NewConnection)
+                    {
+                        connection.Open();
+                        var data = connection.GetSchema("Databases");
+                        node.Children.Clear();
+                        var databases = GetDatabasesInfo();
+                        data.AsEnumerable().OrderBy(r => r.Field<string>("database_name")).ForEach((d) =>
+                        {
+                            var name = d["database_name"].ToString();
+                            var info = GetDatabaseInfo(name);
+                            if (info != null && info.Rows.Count > 0)
+                            {
+                                var row = info.Rows[0];
+                                var state = databases.AsEnumerable().First(r => r["name"].ToString() == name);
+                                var isReady = state != null && Convert.ToInt32(state["state"]) == 0;
+                                var image = isReady ? ImageIndexOnline : 0;
+                                var tag = new ServerState { Key = KeyDatabase, IsReady = false, State = isReady };
+                                var databaseNode = new TreeNode(node, false) { DisplayName = name, Text = name, Icon = ImageClass.Server, Tag = tag };
+                                node.Children.Add(databaseNode);
+                            }
+                        });
+                        node.Children.Cast<TreeNode>().ForEach((n) =>
+                        {
+                            n.Children.Add(new TreeNode(n, false) { Text = KeyTables, DisplayName = "Tables", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTables, IsReady = false } });
+                            n.Children.Add(new TreeNode(n, false) { Text = KeyViews, DisplayName = "Views", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyViews, IsReady = false } });
+                            n.Children.Add( new TreeNode(n, false) { Text = KeyFunctions, DisplayName = "Functions", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyFunctions, IsReady = false } });
+                            n.Children.Add( new TreeNode(n, false) { Text = KeySPs, DisplayName = "Stored Procedures", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeySPs, IsReady = false } });
+                            n.Children.Add( new TreeNode(n, false) { Text = KeyAssemblies, DisplayName = "Assemblies", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyAssemblies, IsReady = false } });
+                            n.Children.Add( new TreeNode(n, false) { Text = KeyTriggers, DisplayName = "Triggers", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTriggers, IsReady = false } }   );
+                        });
+                        connection.Close();
+                    }
+                    //LoadDatabase(Node);
+                    var counts = node.Children.Count;
+
+                    _currentServerInfo.IsAzure = serverState.IsAzure;
+
+                    if (counts == 1 && (node.Children[0].Tag as ServerState).Key == KeyLoading)
+                    {
+                        node.IsExpanded = false;
+                        return false;
+                    }
+                    else
+                        return true;
                 }
-
-            //if (e.Selecting)
-            //{
-            //    System.Diagnostics.Debug.WriteLine("Preview: Selecting " + e.Item + (e.Cancel ? " - cancelled" : ""));
-            //}
-            //else
-            //{
-            //    System.Diagnostics.Debug.WriteLine("Preview: Deselecting " + e.Item + (e.Cancel ? " - cancelled" : ""));
-            //}
-        }
-
-        private void ClearChildrenButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            var selection = new object[TheTreeView.SelectedItems.Count];
-            TheTreeView.SelectedItems.CopyTo(selection, 0);
-            foreach (TreeItemViewModel node in selection)
-            {
-                if (node.Children != null)
+                catch (Exception ex)
                 {
-                    node.Children.Clear();
+                    node.IsExpanded = false;
+                    MessageBox.ShowDialog(ex.Message, this);
+                    return false;
                 }
+            }
+            else
+            {
+                node.IsExpanded = false;
+                return false;
             }
         }
 
-        private void AddChildButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private ServerInfo GetServerInfo(string catalog)
         {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
+            return QueryEngine.GetServerInfo(CurrentServerInfo, catalog);
+        }
+
+        private ServerInfo DefaultServerInfo
+        {
+            get { return GetServerInfo(string.Empty); }
+        }
+
+
+        private DataTable GetDatabasesInfo()
+        {
+            return QueryEngine.GetDatabasesInfo(DefaultServerInfo);
+        }
+
+        internal DataTable Query(string sql)
+        {
+            return Query(sql, DefaultServerInfo);
+        }
+        internal DataTable Query(string sql, ServerInfo info)
+        {
+            var data = QuerySet(sql, info);
+            if (data != null && data.Tables.Count > 0)
+                return data.Tables[0];
+            else
+                return null;
+        }
+        private DataSet QuerySet(string sql, ServerInfo info)
+        {
+            //using (NewWait())
             {
-                if (!node.HasDummyChild)
+                try
                 {
-                    node.Children.Add(new TreeItemViewModel(node, false) { DisplayName = "newborn child" });
-                    node.IsExpanded = true;
+                    return SqlHelper.QuerySet(sql, info);
                 }
-            }
-        }
-
-        private void ExpandNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
-            {
-                node.IsExpanded = true;
-            }
-        }
-
-        private void HideNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems.OfType<TreeItemViewModel>().ToArray())
-            {
-                node.IsVisible = false;
-            }
-        }
-
-        private void ShowNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.Items)
-            {
-                DoShowAll(node, (n) => true);
-            }
-        }
-
-        private void DoShowAll(TreeItemViewModel node, Func<TreeItemViewModel, bool> selector)
-        {
-            node.IsVisible = selector(node);
-            if (node.Children != null)
-            {
-                foreach (var child in node.Children)
+                catch (Exception ex)
                 {
-                    DoShowAll(child, selector);
+                    MessageBox.ShowDialog(ex.Message, this);
+                    return null;
                 }
             }
         }
-
-        private void SelectNoneButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private DataTable GetObjects(string objectType)
         {
-            foreach (TreeItemViewModel node in TheTreeView.Items)
+            string types;
+            switch (objectType)
             {
-                DoSelectAll(node, (n) => false);
+                case KeyTriggers:
+                    return Query("SELECT '' AS SchemaName, name, create_date AS CreateDate, modify_date AS ModifyDate, type FROM sys.triggers WITH (NOLOCK) WHERE parent_class = 0", CurrentServerInfo);
+                default:
+                    switch (objectType)
+                    {
+                        case KeyTables:
+                            types = "'U'";
+                            break;
+                        case KeyViews:
+                            types = "'V'";
+                            break;
+                        case KeyFunctions:
+                            types = "'FN', 'IF', 'TF'";
+                            break;
+                        case KeySPs:
+                            types = "'P'";
+                            break;
+                        default:
+                            types = string.Empty;
+                            break;
+                    }
+                    var filter = !string.IsNullOrEmpty(types) ? " WHERE so.type IN (" + types + ")" : string.Empty;
+                    return GetObjectsFilter(filter);
             }
         }
-
-        private void SelectSomeButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private DataTable GetObjectsFilter(string filter)
         {
-            Random rnd = new Random();
-            foreach (TreeItemViewModel node in TheTreeView.Items)
-            {
-                DoSelectAll(node, (n) => rnd.Next(0, 2) > 0);
-            }
+            return Query(string.Format("SELECT su.name AS SchemaName, so.name, so.create_date AS CreateDate, so.modify_date AS ModifyDate, so.type FROM sys.objects so WITH (NOLOCK) LEFT JOIN sys.schemas su WITH (NOLOCK) ON so.schema_id = su.schema_id {0} ORDER BY su.name, so.name", filter), CurrentServerInfo);
         }
-
-        private void SelectAllButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private bool ShowObjects(TreeNode node)
         {
-            foreach (TreeItemViewModel node in TheTreeView.Items)
+            var ready = false;
+            DataTable data;
+            var key = node.Text;
+            var root = GetRootNode(node);
+            var serverState = node.Tag as ServerState;
+            _previousServerInfo = _currentServerInfo;
+            _currentServerInfo = root.Tag as ServerState;
+            switch (serverState.Key)
             {
-                DoSelectAll(node, (n) => true);
-            }
-        }
+                case KeyServer:
+                    ready = LoadServer(node);
+                    break;
+                case KeyDatabase:
+                    _currentDatabase = node.Text;
+                    _currentServerInfo.Database = _currentDatabase;
+                    var databases = GetDatabasesInfo();
+                    var state = databases.AsEnumerable().First(r => r["name"].ToString() == _currentDatabase);
+                    if (state != null && Convert.ToInt32(state["state"]) == 0)
+                    {
+                        var objects = new string[] { KeyTables, KeyViews, KeyFunctions, KeySPs, KeyTriggers };
+                        objects.ForEach(o =>
+                        {
+                            data = GetObjects(o);
+                            data.AsEnumerable().ForEach((d) =>
+                            {
+                                var icon = ImageClass.List2;
+                                var type = string.Empty;
+                                switch (o)
+                                {
+                                    case KeyTables:
+                                        type = KeyTable;
+                                        icon = ImageClass.Table2;
+                                        break;
+                                    case KeyViews:
+                                        type = KeyView;
+                                        icon = ImageClass.List2;
+                                        break;
+                                    case KeySPs:
+                                        type = KeySp;
+                                        icon = ImageClass.Gear2;
+                                        break;
+                                    case KeyFunctions:
+                                        type = KeyFunction;
+                                        icon = ImageClass.Gear2;
+                                        break;
+                                    case KeyAssemblies:
+                                        type = KeyAssembly;
+                                        icon = ImageClass.Gear2;
+                                        break;
+                                    case KeyTriggers:
+                                        type = KeyTrigger;
+                                        icon = ImageClass.Gear2;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                var temp = node.Children.First(q => q.Text == o);
+                                var tag = new ServerState { Key = type, IsReady = false };
+                                var child = new TreeNode(temp, false) { DisplayName = QueryEngine.GetObjectName(d[KeySchemaName].ToString(), d[KeyName].ToString()),
+                                    Icon = icon, Tag = tag };
+                                temp.Children.Add(child);
+                            });
+                        });
+                        ready = true;
+                    }
+                    else
+                    {
 
-        private void ToggleSelectButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.Items)
-            {
-                DoSelectAll(node, (n) => !n.IsSelected);
+                    }
+                    //else if (ShowQuestion(string.Format("The database [{0}] is currently offline. Do you bring it back to online?", _currentDatabase)))
+                    //{
+                    //    SetOnlineOffline(_currentDatabase, true);
+                    //    ShowObjects(node);
+                    //}
+                    break;
+                default:
+                    ready = true;
+                    break;
             }
+            serverState.IsReady = ready;
+            return ready;
         }
-
-        private void DoSelectAll(TreeItemViewModel node, Func<TreeItemViewModel, bool> selector)
-        {
-            node.IsSelected = selector(node);
-            if (node.Children != null)
-            {
-                foreach (var child in node.Children)
-                {
-                    DoSelectAll(child, selector);
-                }
-            }
-        }
-
-        private void ExpandMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
-            {
-                node.IsExpanded = true;
-            }
-        }
-
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
-            {
-                node.IsEditing = true;
-                break;
-            }
-        }
-
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (TreeItemViewModel node in TheTreeView.SelectedItems.Cast<TreeItemViewModel>().ToArray())
-            {
-                node.Parent.Children.Remove(node);
-            }
-        }
-
     }
 }

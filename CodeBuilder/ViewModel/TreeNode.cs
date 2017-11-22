@@ -9,14 +9,14 @@ namespace CodeBuilder.ViewModel
 	/// should inherit from this class.
 	/// </summary>
 	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
-	public class TreeItemViewModel : INotifyPropertyChanged
+	public class TreeNode : INotifyPropertyChanged
 	{
 		#region Data
 
-		private static readonly TreeItemViewModel DummyChild = new TreeItemViewModel();
+		private static readonly TreeNode DummyChild = new TreeNode();
 
-		private readonly ObservableCollection<TreeItemViewModel> children;
-		private readonly TreeItemViewModel parent;
+		private readonly ObservableCollection<TreeNode> children;
+		private readonly TreeNode parent;
 
 		private bool isExpanded;
 		private bool isSelected;
@@ -30,18 +30,19 @@ namespace CodeBuilder.ViewModel
 
 		#region Constructor
 
-		public TreeItemViewModel(TreeItemViewModel parent, bool lazyLoadChildren)
+		public TreeNode(TreeNode parent, bool lazyLoadChildren)
 		{
 			this.parent = parent;
 
-			children = new ObservableCollection<TreeItemViewModel>();
+			children = new ObservableCollection<TreeNode>();
 
 			if (lazyLoadChildren)
 				children.Add(DummyChild);
 		}
 
-		// This is used to create the DummyChild instance.
-		private TreeItemViewModel()
+        // This is used to create the DummyChild instance.
+        public TreeNode()
+            : this(null, false)
 		{
 		}
 
@@ -52,7 +53,7 @@ namespace CodeBuilder.ViewModel
 		/// <summary>
 		/// Returns the logical child items of this object.
 		/// </summary>
-		public ObservableCollection<TreeItemViewModel> Children
+		public ObservableCollection<TreeNode> Children
 		{
 			get { return children; }
 		}
@@ -101,7 +102,7 @@ namespace CodeBuilder.ViewModel
 		{
 			for (int i = 0; i < 100; i++)
 			{
-				Children.Add(new TreeItemViewModel(this, true) { DisplayName = "subnode " + i });
+				Children.Add(new TreeNode(this, true) { DisplayName = "subnode " + i });
 			}
 		}
 
@@ -187,7 +188,7 @@ namespace CodeBuilder.ViewModel
 			}
 		}
 
-		public TreeItemViewModel Parent
+		public TreeNode Parent
 		{
 			get { return parent; }
 		}
@@ -208,28 +209,68 @@ namespace CodeBuilder.ViewModel
 		/// </summary>
 		private string displayName;
 		public virtual string DisplayName
-		{
+        {
 			get { return displayName; }
 			set
 			{
 				if (value != displayName)
 				{
-					displayName = value;
+                    displayName = value;
 					OnPropertyChanged("DisplayName");
 				}
 			}
 		}
+        private string text;
+        public virtual string Text
+        {
+            get { return text; }
+            set
+            {
+                if (value != text)
+                {
+                    text = value;
+                    OnPropertyChanged("Text");
+                }
+            }
+        }
+
+        private string icon;
+        public virtual string Icon
+        {
+            get { return icon; }
+            set
+            {
+                if (value != icon)
+                {
+                    icon = value;
+                    OnPropertyChanged("Icon");
+                }
+            }
+        }
+
+        private object tag;
+        public virtual object Tag
+        {
+            get { return tag; }
+            set
+            {
+                if (value != tag)
+                {
+                    tag = value;
+                    OnPropertyChanged("Tag");
+                }
+            }
+        }
 
 
-        public string Icon { get; set; }
-		#endregion ViewModelBase
+        #endregion ViewModelBase
 
-		#region INotifyPropertyChanged members
+        #region INotifyPropertyChanged members
 
-		/// <summary>
-		/// Raised when a property on this object has a new value.
-		/// </summary>
-		public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>
+        /// Raised when a property on this object has a new value.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>
 		/// Raises this object's PropertyChanged event.

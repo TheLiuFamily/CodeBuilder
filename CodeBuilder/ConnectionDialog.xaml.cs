@@ -64,7 +64,11 @@ namespace CodeBuilder
 
         }
 
-        private ConnectionDialog(ServerInfo info)
+        /// <summary>
+        /// 用于保存弹出框父类
+        /// </summary>
+        private Window _window;
+        public ConnectionDialog(ServerInfo info, Window window)
             : this()
         {
             if (info != null)
@@ -75,8 +79,27 @@ namespace CodeBuilder
                 Password = info.Password;
                 AuthType = info.AuthType;
             }
-        }
+            _window = window;
 
+            
+
+        }
+        public bool? UShowDialog()
+        {
+            //蒙板
+            Grid layer = new Grid() { Background = new SolidColorBrush(Color.FromArgb(50, 0, 0, 0)) };
+            //父级窗体原来的内容
+            UIElement original = _window.Content as UIElement;
+            _window.Content = null;
+            //容器Grid
+            Grid container = new Grid();
+            container.Children.Add(original);//放入原来的内容
+            container.Children.Add(layer);//在上面放一层蒙板
+            //将装有原来内容和蒙板的容器赋给父级窗体
+            _window.Content = container;
+            this.Owner = _window;
+            return this.ShowDialog();
+        }
         private void OnSaveClick(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(Server))
@@ -118,29 +141,6 @@ namespace CodeBuilder
             }
         }
 
-        /// <summary>
-        /// 弹出消息框
-        /// </summary>
-        /// <param name="message">消息</param>
-        /// <param name="owner">父级窗体</param>
-        public static bool? ShowDialog(ServerInfo serverInfo, Window owner)
-        {
-            //蒙板
-            Grid layer = new Grid() { Background = new SolidColorBrush(Color.FromArgb(50, 0, 0, 0)) };
-            //父级窗体原来的内容
-            UIElement original = owner.Content as UIElement;
-            owner.Content = null;
-            //容器Grid
-            Grid container = new Grid();
-            container.Children.Add(original);//放入原来的内容
-            container.Children.Add(layer);//在上面放一层蒙板
-            //将装有原来内容和蒙板的容器赋给父级窗体
-            owner.Content = container;
-
-            //弹出消息框
-            ConnectionDialog box = new ConnectionDialog() { Owner = owner };
-            return box.ShowDialog();
-        }
 
         /// <summary>
         /// 窗体关闭事件

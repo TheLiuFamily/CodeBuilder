@@ -4,7 +4,7 @@
 	x:Class="CodeBuilder.MainWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:Controls_TreeView="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
+	xmlns:UTree="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
 	xmlns:demo="clr-namespace:CodeBuilder"
 	xmlns:vm="clr-namespace:CodeBuilder.ViewModel"
 	xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -19,10 +19,10 @@
         <!--
 		Here the normal editor template is defined
 		-->
-        <DataTemplate x:Key="EditTemplate" DataType="{x:Type vm:TreeItemViewModel}">
+        <DataTemplate x:Key="EditTemplate" DataType="{x:Type vm:TreeNode}">
             <StackPanel Orientation="Horizontal">
                 <Border Background="YellowGreen" CornerRadius="3" Width="16" Height="16"/>
-                <Controls_TreeView:EditTextBox
+                <UTree:EditTextBox
 					Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 					Padding="2,0,0,0"/>
             </StackPanel>
@@ -51,7 +51,7 @@
 				specify the most specialised type first, as base types will also be considered.
 				-->
                 <demo:TypeTemplateDefinition
-					Type="{x:Type vm:TreeItemViewModel}" Template="{StaticResource EditTemplate}"/>
+					Type="{x:Type vm:TreeNode}" Template="{StaticResource EditTemplate}"/>
             </demo:TypeTemplateSelector.TemplateDefinitions>
         </demo:TypeTemplateSelector>
 
@@ -103,23 +103,19 @@
                     <WrapPanel x:Name="skinPanel"/>
                 </Border>
             </Popup>
-            <TextBlock DockPanel.Dock="Top" Style="{StaticResource FirstCaption}">The TreeView control</TextBlock>
-            <Controls_TreeView:MultiSelectTreeView
+            <UTree:MultiSelectTreeView
 				Name="TheTreeView"
 				ItemsSource="{Binding Children}"
-				PreviewSelectionChanged="TheTreeView_PreviewSelectionChanged">
+				PreviewSelectionChanged="TheTreeView_PreviewSelectionChanged" Width="928"
+                >
 
-                <Controls_TreeView:MultiSelectTreeView.ContextMenu>
+                <UTree:MultiSelectTreeView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Expand" Click="ExpandMenuItem_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
-                        <MenuItem Header="Delete" Click="DeleteMenuItem_Click"/>
                     </ContextMenu>
-                </Controls_TreeView:MultiSelectTreeView.ContextMenu>
+                </UTree:MultiSelectTreeView.ContextMenu>
 
-                <Controls_TreeView:MultiSelectTreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type Controls_TreeView:MultiSelectTreeViewItem}">
+                <UTree:MultiSelectTreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type UTree:MultiSelectTreeViewItem}">
                         <!--
 						Here the TreeViewItem's properties are connected with the ViewModel class.
 						Basically you would make all MultiSelectTreeViewItem properties accessible
@@ -189,20 +185,20 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                </Controls_TreeView:MultiSelectTreeView.ItemContainerStyle>
+                </UTree:MultiSelectTreeView.ItemContainerStyle>
 
-                <Controls_TreeView:MultiSelectTreeView.Resources>
+                <UTree:MultiSelectTreeView.Resources>
                     <!--
 					Here the general item appearance is defined, for the ViewModel.TreeItemViewModel type
 					-->
-                    <HierarchicalDataTemplate DataType="{x:Type vm:TreeItemViewModel}" ItemsSource="{Binding Children}">
+                    <HierarchicalDataTemplate DataType="{x:Type vm:TreeNode}" ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
-                            <Image VerticalAlignment="Center" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,2,2"></Image>
+                            <Image VerticalAlignment="Center" Source="{Binding Icon}" Height="16" Width="16" Stretch="Fill"  Margin="0,0,2,2"></Image>
                             <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Padding="4,0,2,0"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
-                </Controls_TreeView:MultiSelectTreeView.Resources>
-            </Controls_TreeView:MultiSelectTreeView>
+                </UTree:MultiSelectTreeView.Resources>
+            </UTree:MultiSelectTreeView>
         </DockPanel>
     </Grid>
 

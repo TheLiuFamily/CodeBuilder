@@ -36,13 +36,13 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Label Content="Server:" Grid.Column="0"></Label>
-                    <ComboBox x:Name="cboServers" Grid.Column="1"  Margin="3" IsEditable="True" />
+                    <ComboBox x:Name="cboServers" Grid.Column="1"  Margin="3" IsEditable="True" Text="."/>
                     <Label Content="Auth:" Grid.Column="0" Grid.Row="1"></Label>
                     <ComboBox x:Name="cboAuthTypes" Grid.Column="1" Grid.Row="1" Margin="3" />
                     <Label Content="User:" Grid.Column="0" Grid.Row="2"></Label>
-                    <TextBox x:Name="txtUserName" Grid.Column="1" Grid.Row="2" Margin="3"></TextBox>
+                    <TextBox x:Name="txtUserName" Grid.Column="1" Grid.Row="2" Margin="3" Text="sa"></TextBox>
                     <Label Content="Password:" Grid.Column="0" Grid.Row="3"></Label>
-                    <PasswordBox x:Name="txtPassword" Grid.Column="1" Grid.Row="3" Margin="3"></PasswordBox>
+                    <PasswordBox x:Name="txtPassword" Grid.Column="1" Grid.Row="3" Margin="3" Password="123456"></PasswordBox>
                     <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Margin="230,8,8,0">
                         <Button x:Name="btnTest" Content="Test Connection" Margin="2" Click="OnTestConnectionClick"></Button>
                         <Button x:Name="btnSave" Content="Save" Margin="2" Width="60" Click="OnSaveClick"></Button>
