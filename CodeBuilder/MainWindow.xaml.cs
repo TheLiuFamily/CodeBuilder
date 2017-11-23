@@ -3,6 +3,7 @@ using CodeBuilder.Logic;
 using CodeBuilder.ViewModel;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -115,41 +116,7 @@ namespace CodeBuilder
         //}
         private readonly ServerInfo _server = null;
         private ServerInfo info;
-        /// <summary>  
-        /// 实现换肤  
-        /// </summary>  
-        private void ChangeSkin(object obj, RoutedEventArgs e)
-        {
-            if (e.OriginalSource is Button)
-            {
-                var theme = (e.OriginalSource as Button).Name;
-                ChangeTheme(theme);
 
-                //记录换肤，下次启动直接使用
-                Configuration cf = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                cf.AppSettings.Settings["Theme"].Value = theme;
-                cf.Save();
-            }
-        }
-
-        /// <summary>  
-        /// 初始化所有皮肤控件  
-        /// </summary>  
-        private void InitSkins()
-        {
-            var accents = ThemeManager.Accents;
-            Style btnStyle = App.Current.FindResource("btnSkinStyle") as Style;
-            foreach (var accent in accents)
-            {
-                //新建换肤按钮  
-                Button btnskin = new Button();
-                btnskin.Style = btnStyle;
-                btnskin.Name = accent.Name;
-                SolidColorBrush scb = accent.Resources["AccentColorBrush"] as SolidColorBrush;
-                btnskin.Background = scb;
-                skinPanel.Children.Add(btnskin);
-            }
-        }
         public void LoginSql(object sender, RoutedEventArgs e)
         {
             var dlg = new ConnectionDialog(null, this);
@@ -200,42 +167,30 @@ namespace CodeBuilder
         {
             _currentServerInfo = info;
             var state = new ServerState { IsAzure = info.IsAzure, AuthType = info.AuthType, Server = info.Server, Database = info.Database, User = info.User, Password = info.Password, IsReady = false, Key = KeyServer };
-            var treeNode = new TreeNode(null, false) { DisplayName = "RootNode", Tag = state };
-            var node = new TreeNode(treeNode, false) { DisplayName = info.Server, Tag = state, Icon = ImageClass.Server2 };
-            var node1 = new TreeNode(node, false) { DisplayName = "Loading...", Tag = new ServerState { Key = KeyLoading } };
-            treeNode.Children.Add(node);
-            node.Children.Add(node1);
-            DataContext = treeNode;
+            var treeNode = new TreeNode(null, false) { Text = info.Server, DisplayName = info.Server, Tag = state, Icon = ImageClass.Server2 };
+            var node = new TreeNode(treeNode, false) { Text = "Loading...", DisplayName = "Loading...", Tag = new ServerState { Key = KeyLoading } };
+            treeNode.Nodes.Add(node);
+            _viewModel.Nodes.Add(treeNode);
         }
-
+        private readonly MainWindowViewModel _viewModel;
         public MainWindow()
         {
+            _viewModel = new MainWindowViewModel(DialogCoordinator.Instance);
+           
+            DataContext = _viewModel;
+
             InitializeComponent();
 
 
-            btnSkin.Click += (s, e) => skinUI.IsOpen = true;
+            AccentColorMenuData.ChangeTheme(ConfigurationManager.AppSettings["Theme"], ConfigurationManager.AppSettings["Skin"]);
             btnLogin.Click += LoginSql;
-
-            skinPanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeSkin));
-            InitSkins();
-
-            ChangeTheme(ConfigurationManager.AppSettings["Theme"]);
 
             if(Settings.Instance.Servers.FirstOrDefault() != null)
             {
                 LoadServer(Settings.Instance.Servers.First());
             }
+
         }
-
-        private static void ChangeTheme(string theme)
-        {
-            Accent accent = ThemeManager.GetAccent(theme);
-            App.Current.Resources.MergedDictionaries.Last().Source = accent.Resources.Source;
-        }
-
-
-
-
 
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
         {
@@ -313,7 +268,7 @@ namespace CodeBuilder
                     {
                         connection.Open();
                         var data = connection.GetSchema("Databases");
-                        node.Children.Clear();
+                        node.Nodes.Clear();
                         var databases = GetDatabasesInfo();
                         data.AsEnumerable().OrderBy(r => r.Field<string>("database_name")).ForEach((d) =>
                         {
@@ -327,32 +282,36 @@ namespace CodeBuilder
                                 var image = isReady ? ImageIndexOnline : 0;
                                 var tag = new ServerState { Key = KeyDatabase, IsReady = false, State = isReady };
                                 var databaseNode = new TreeNode(node, false) { DisplayName = name, Text = name, Icon = ImageClass.Server, Tag = tag };
-                                node.Children.Add(databaseNode);
+                                node.Nodes.Add(databaseNode);
                             }
                         });
-                        node.Children.Cast<TreeNode>().ForEach((n) =>
+                        node.Nodes.Cast<TreeNode>().ForEach((n) =>
                         {
-                            n.Children.Add(new TreeNode(n, false) { Text = KeyTables, DisplayName = "Tables", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTables, IsReady = false } });
-                            n.Children.Add(new TreeNode(n, false) { Text = KeyViews, DisplayName = "Views", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyViews, IsReady = false } });
-                            n.Children.Add( new TreeNode(n, false) { Text = KeyFunctions, DisplayName = "Functions", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyFunctions, IsReady = false } });
-                            n.Children.Add( new TreeNode(n, false) { Text = KeySPs, DisplayName = "Stored Procedures", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeySPs, IsReady = false } });
-                            n.Children.Add( new TreeNode(n, false) { Text = KeyAssemblies, DisplayName = "Assemblies", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyAssemblies, IsReady = false } });
-                            n.Children.Add( new TreeNode(n, false) { Text = KeyTriggers, DisplayName = "Triggers", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTriggers, IsReady = false } }   );
+                            n.Nodes.Add(new TreeNode(n, false) { Text = KeyTables, DisplayName = "Tables", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTables, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n, false) { Text = KeyViews, DisplayName = "Views", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyViews, IsReady = false } });
+                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyFunctions, DisplayName = "Functions", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyFunctions, IsReady = false } });
+                            n.Nodes.Add( new TreeNode(n, false) { Text = KeySPs, DisplayName = "Stored Procedures", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeySPs, IsReady = false } });
+                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyAssemblies, DisplayName = "Assemblies", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyAssemblies, IsReady = false } });
+                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyTriggers, DisplayName = "Triggers", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTriggers, IsReady = false } }   );
                         });
                         connection.Close();
                     }
                     //LoadDatabase(Node);
-                    var counts = node.Children.Count;
+                    var counts = node.Nodes.Count;
 
                     _currentServerInfo.IsAzure = serverState.IsAzure;
 
-                    if (counts == 1 && (node.Children[0].Tag as ServerState).Key == KeyLoading)
+                    if (counts == 1 && (node.Tag as ServerState).Key == KeyLoading)
                     {
                         node.IsExpanded = false;
                         return false;
                     }
                     else
+                    {
+                        node.IsExpanded = true;
                         return true;
+
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -503,11 +462,11 @@ namespace CodeBuilder
                                     default:
                                         break;
                                 }
-                                var temp = node.Children.First(q => q.Text == o);
+                                var temp = node.Nodes.First(q => q.Text == o);
                                 var tag = new ServerState { Key = type, IsReady = false };
                                 var child = new TreeNode(temp, false) { DisplayName = QueryEngine.GetObjectName(d[KeySchemaName].ToString(), d[KeyName].ToString()),
                                     Icon = icon, Tag = tag };
-                                temp.Children.Add(child);
+                                temp.Nodes.Add(child);
                             });
                         });
                         ready = true;
@@ -529,5 +488,6 @@ namespace CodeBuilder
             serverState.IsReady = ready;
             return ready;
         }
+
     }
 }

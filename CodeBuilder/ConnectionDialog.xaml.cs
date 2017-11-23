@@ -81,9 +81,8 @@ namespace CodeBuilder
             }
             _window = window;
 
-            
-
         }
+
         public bool? UShowDialog()
         {
             //蒙板
