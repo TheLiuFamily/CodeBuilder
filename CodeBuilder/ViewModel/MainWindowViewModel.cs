@@ -1,5 +1,4 @@
-﻿using CodeBuilder.ExampleViews;
-using CodeBuilder.Models;
+﻿using CodeBuilder.Models;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -32,8 +31,6 @@ namespace CodeBuilder.ViewModel
 	{
 		#region Data
 
-		private static readonly TreeNode DummyChild = new TreeNode();
-
 		private readonly ObservableCollection<TreeNode> nodes;
 		private readonly TreeNode parent;
 
@@ -49,22 +46,11 @@ namespace CodeBuilder.ViewModel
 
 		#region Constructor
 
-		public TreeNode(TreeNode parent, bool lazyLoadChildren)
+		public TreeNode(TreeNode parent)
 		{
 			this.parent = parent;
-
 			nodes = new ObservableCollection<TreeNode>();
-
-			if (lazyLoadChildren)
-				nodes.Add(DummyChild);
 		}
-
-        // This is used to create the DummyChild instance.
-        public TreeNode()
-            : this(null, false)
-		{
-		}
-
 		#endregion Constructor
 
 		#region Public properties
@@ -75,14 +61,6 @@ namespace CodeBuilder.ViewModel
 		public ObservableCollection<TreeNode> Nodes
 		{
 			get { return nodes; }
-		}
-
-		/// <summary>
-		/// Returns true if this object's Children have not yet been populated.
-		/// </summary>
-		public bool HasDummyChild
-		{
-			get { return Nodes.Count == 1 && Nodes[0] == DummyChild; }
 		}
 
 		/// <summary>
@@ -102,26 +80,7 @@ namespace CodeBuilder.ViewModel
 					// Expand all the way up to the root.
 					if (isExpanded && parent != null)
 						parent.IsExpanded = true;
-
-					// Lazy load the child items, if necessary.
-					if (isExpanded && HasDummyChild)
-					{
-						Nodes.Remove(DummyChild);
-						LoadChildren();
-					}
 				}
-			}
-		}
-
-		/// <summary>
-		/// Invoked when the child items need to be loaded on demand.
-		/// Subclasses can override this to populate the Children collection.
-		/// </summary>
-		protected virtual void LoadChildren()
-		{
-			for (int i = 0; i < 100; i++)
-			{
-				Nodes.Add(new TreeNode(this, true) { DisplayName = "subnode " + i });
 			}
 		}
 
@@ -290,14 +249,16 @@ namespace CodeBuilder.ViewModel
         /// Raised when a property on this object has a new value.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+        public static event PropertyChangedEventHandler PropertyChanged_Static;
 
-		/// <summary>
-		/// Raises this object's PropertyChanged event.
-		/// </summary>
-		/// <param name="propertyName">The property that has a new value.</param>
-		protected void OnPropertyChanged(string propertyName)
+        /// <summary>
+        /// Raises this object's PropertyChanged event.
+        /// </summary>
+        /// <param name="propertyName">The property that has a new value.</param>
+        protected void OnPropertyChanged(string propertyName)
 		{
-			var handler = PropertyChanged;
+            PropertyChanged = PropertyChanged_Static;
+            var handler = PropertyChanged;
 			if (handler != null)
 			{
 				handler(this, new PropertyChangedEventArgs(propertyName));
@@ -763,33 +724,7 @@ namespace CodeBuilder.ViewModel
         }
 
 
-        private ICommand showCustomDialogCommand;
-
-        public ICommand ShowCustomDialogCommand
-        {
-            get
-            {
-                return this.showCustomDialogCommand ?? (this.showCustomDialogCommand = new SimpleCommand
-                {
-                    CanExecuteDelegate = x => true,
-                    ExecuteDelegate = x => RunCustomFromVm()
-                });
-            }
-        }
-
-        private async void RunCustomFromVm()
-        {
-            var customDialog = new CustomDialog() { Title = "Custom Dialog" };
-
-            var customDialogExampleContent = new CustomDialogExampleContent(instance =>
-            {
-                _dialogCoordinator.HideMetroDialogAsync(this, customDialog);
-                System.Diagnostics.Debug.WriteLine(instance.FirstName);
-            });
-            customDialog.Content = new CustomDialogExample { DataContext = customDialogExampleContent };
-
-            await _dialogCoordinator.ShowMetroDialogAsync(this, customDialog);
-        }
+      
 
         public IEnumerable<string> BrushResources { get; private set; }
 

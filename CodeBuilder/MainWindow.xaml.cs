@@ -1,5 +1,6 @@
 ﻿using CodeBuilder.Common;
 using CodeBuilder.Logic;
+using CodeBuilder.Models;
 using CodeBuilder.ViewModel;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
@@ -117,79 +118,114 @@ namespace CodeBuilder
         private readonly ServerInfo _server = null;
         private ServerInfo info;
 
-        public void LoginSql(object sender, RoutedEventArgs e)
+        public async void LoginSql(object sender, RoutedEventArgs e)
         {
-            var dlg = new ConnectionDialog(null, this);
-            if (dlg.UShowDialog() == true)
-            {
-                var server = dlg.Server;
-                ServerInfo item;
-                if (info == null)
-                    item = Settings.Instance.FindServer(server, dlg.UserName);
-                else
-                    item = Settings.Instance.FindServer(info.Server, dlg.UserName);
-                var isNew = false;
-                if (item == null)
+            var dlg = new ConnectionDialog(this, null);
+
+            //EventHandler<DialogStateChangedEventArgs> dialogManagerOnDialogOpened = null;
+            //dialogManagerOnDialogOpened = (o, args) => {
+            //    DialogManager.DialogOpened -= dialogManagerOnDialogOpened;
+            //};
+            //DialogManager.DialogOpened += dialogManagerOnDialogOpened;
+
+            EventHandler<DialogStateChangedEventArgs> dialogManagerOnDialogClosed = null;
+            dialogManagerOnDialogClosed = async (o, args) => {
+                DialogManager.DialogClosed -= dialogManagerOnDialogClosed;
+                if (dlg.Status)
                 {
-                    item = new ServerInfo();
-                    Settings.Instance.Servers.Add(item);
-                    isNew = true;
-                }
-                item.AuthType = dlg.AuthType;
-                item.Server = server;
-                item.Password = dlg.Password;
-                item.User = dlg.UserName;
-                Settings.Instance.Save();
-                if (info != null)
-                {
-                    info.AuthType = item.AuthType;
-                    info.Password = item.Password;
-                    info.Server = item.Server;
-                    info.User = item.User;
-                }
-                if (isNew)
-                    LoadServer(item);
-                else if (info == null)
-                    MessageBox.ShowDialog(string.Format("Server [{0}] already exists", item.Server), this);
-                else
-                {
-                    foreach (TreeNode node in TheTreeView.Items)
+                    var server = dlg.Server;
+                    ServerInfo item;
+                    if (info == null)
+                        item = Settings.Instance.FindServer(server, dlg.UserName);
+                    else
+                        item = Settings.Instance.FindServer(info.Server, dlg.UserName);
+                    var isNew = false;
+                    if (item == null)
                     {
-                        if (node.DisplayName == item.Server)
+                        item = new ServerInfo();
+                        Settings.Instance.Servers.Add(item);
+                        isNew = true;
+                    }
+                    item.AuthType = dlg.AuthType;
+                    item.Server = server;
+                    item.Password = dlg.Password;
+                    item.User = dlg.UserName;
+                    Settings.Instance.Save();
+                    if (info != null)
+                    {
+                        info.AuthType = item.AuthType;
+                        info.Password = item.Password;
+                        info.Server = item.Server;
+                        info.User = item.User;
+                    }
+                    if (isNew)
+                        LoadServer(item);
+                    else if (info == null)
+                        ShowMessageDialog(string.Format("Server [{0}] already exists", item.Server));
+                    else
+                    {
+                        foreach (TreeNode node in TheTreeView.Items)
                         {
-                            node.IsSelected = true;
+                            if (node.DisplayName == item.Server)
+                            {
+                                node.IsSelected = true;
+                            }
                         }
                     }
                 }
-            }
+
+
+            };
+            DialogManager.DialogClosed += dialogManagerOnDialogClosed;
+            await this.ShowMetroDialogAsync(dlg);
+            await dlg.WaitUntilUnloadedAsync();
+
         }
         private void LoadServer(ServerInfo info)
         {
             _currentServerInfo = info;
             var state = new ServerState { IsAzure = info.IsAzure, AuthType = info.AuthType, Server = info.Server, Database = info.Database, User = info.User, Password = info.Password, IsReady = false, Key = KeyServer };
-            var treeNode = new TreeNode(null, false) { Text = info.Server, DisplayName = info.Server, Tag = state, Icon = ImageClass.Server2 };
-            var node = new TreeNode(treeNode, false) { Text = "Loading...", DisplayName = "Loading...", Tag = new ServerState { Key = KeyLoading } };
+            var treeNode = new TreeNode(null) { Text = info.Server, DisplayName = info.Server, Tag = state, Icon = ImageClass.Server2 };
+            var node = new TreeNode(treeNode) { Text = "Loading...", DisplayName = "Loading...", Tag = new ServerState { Key = KeyLoading } };
             treeNode.Nodes.Add(node);
             _viewModel.Nodes.Add(treeNode);
         }
         private readonly MainWindowViewModel _viewModel;
+
+        private async void ShowMessageDialog(string message)
+        {
+            // This demo runs on .Net 4.0, but we're using the Microsoft.Bcl.Async package so we have async/await support
+            // The package is only used by the demo and not a dependency of the library!
+            var mySettings = new MetroDialogSettings()
+            {
+                FirstAuxiliaryButtonText = "OK",
+                ColorScheme = MetroDialogOptions.ColorScheme
+            };
+
+            MessageDialogResult result = await this.ShowMessageAsync("Tips", message,
+                MessageDialogStyle.Affirmative, mySettings);
+
+            //if (result != MessageDialogResult.FirstAuxiliary)
+            //    await this.ShowMessageAsync("Result", "You said: " + (result == MessageDialogResult.Affirmative ? mySettings.AffirmativeButtonText : mySettings.NegativeButtonText +
+            //        Environment.NewLine + Environment.NewLine + "This dialog will follow the Use Accent setting."));
+        }
+
         public MainWindow()
         {
             _viewModel = new MainWindowViewModel(DialogCoordinator.Instance);
-           
+
             DataContext = _viewModel;
 
             InitializeComponent();
 
-
+            TreeNode.PropertyChanged_Static += ExpandTreeView;
             AccentColorMenuData.ChangeTheme(ConfigurationManager.AppSettings["Theme"], ConfigurationManager.AppSettings["Skin"]);
             btnLogin.Click += LoginSql;
 
-            if(Settings.Instance.Servers.FirstOrDefault() != null)
+            if (Settings.Instance.Servers.FirstOrDefault() != null)
             {
                 LoadServer(Settings.Instance.Servers.First());
             }
-
         }
 
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
@@ -281,18 +317,18 @@ namespace CodeBuilder
                                 var isReady = state != null && Convert.ToInt32(state["state"]) == 0;
                                 var image = isReady ? ImageIndexOnline : 0;
                                 var tag = new ServerState { Key = KeyDatabase, IsReady = false, State = isReady };
-                                var databaseNode = new TreeNode(node, false) { DisplayName = name, Text = name, Icon = ImageClass.Server, Tag = tag };
+                                var databaseNode = new TreeNode(node) { DisplayName = name, Text = name, Icon = ImageClass.Server, Tag = tag };
                                 node.Nodes.Add(databaseNode);
                             }
                         });
                         node.Nodes.Cast<TreeNode>().ForEach((n) =>
                         {
-                            n.Nodes.Add(new TreeNode(n, false) { Text = KeyTables, DisplayName = "Tables", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTables, IsReady = false } });
-                            n.Nodes.Add(new TreeNode(n, false) { Text = KeyViews, DisplayName = "Views", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyViews, IsReady = false } });
-                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyFunctions, DisplayName = "Functions", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyFunctions, IsReady = false } });
-                            n.Nodes.Add( new TreeNode(n, false) { Text = KeySPs, DisplayName = "Stored Procedures", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeySPs, IsReady = false } });
-                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyAssemblies, DisplayName = "Assemblies", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyAssemblies, IsReady = false } });
-                            n.Nodes.Add( new TreeNode(n, false) { Text = KeyTriggers, DisplayName = "Triggers", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTriggers, IsReady = false } }   );
+                            n.Nodes.Add(new TreeNode(n) { Text = KeyTables, DisplayName = "Tables", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTables, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n) { Text = KeyViews, DisplayName = "Views", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyViews, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n) { Text = KeyFunctions, DisplayName = "Functions", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyFunctions, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n) { Text = KeySPs, DisplayName = "Stored Procedures", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeySPs, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n) { Text = KeyAssemblies, DisplayName = "Assemblies", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyAssemblies, IsReady = false } });
+                            n.Nodes.Add(new TreeNode(n) { Text = KeyTriggers, DisplayName = "Triggers", Icon = ImageClass.Folder, Tag = new ServerState { Key = KeyTriggers, IsReady = false } });
                         });
                         connection.Close();
                     }
@@ -316,7 +352,7 @@ namespace CodeBuilder
                 catch (Exception ex)
                 {
                     node.IsExpanded = false;
-                    MessageBox.ShowDialog(ex.Message, this);
+                    ShowMessageDialog(ex.Message);
                     return false;
                 }
             }
@@ -357,17 +393,14 @@ namespace CodeBuilder
         }
         private DataSet QuerySet(string sql, ServerInfo info)
         {
-            //using (NewWait())
+            try
             {
-                try
-                {
-                    return SqlHelper.QuerySet(sql, info);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.ShowDialog(ex.Message, this);
-                    return null;
-                }
+                return SqlHelper.QuerySet(sql, info);
+            }
+            catch (Exception ex)
+            {
+                ShowMessageDialog(ex.Message);
+                return null;
             }
         }
         private DataTable GetObjects(string objectType)
@@ -464,8 +497,12 @@ namespace CodeBuilder
                                 }
                                 var temp = node.Nodes.First(q => q.Text == o);
                                 var tag = new ServerState { Key = type, IsReady = false };
-                                var child = new TreeNode(temp, false) { DisplayName = QueryEngine.GetObjectName(d[KeySchemaName].ToString(), d[KeyName].ToString()),
-                                    Icon = icon, Tag = tag };
+                                var child = new TreeNode(temp)
+                                {
+                                    DisplayName = QueryEngine.GetObjectName(d[KeySchemaName].ToString(), d[KeyName].ToString()),
+                                    Icon = icon,
+                                    Tag = tag
+                                };
                                 temp.Nodes.Add(child);
                             });
                         });
@@ -489,5 +526,30 @@ namespace CodeBuilder
             return ready;
         }
 
+
+        public void ExpandTreeView(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsExpanded")
+            {
+                var node = sender as TreeNode;
+                if (node.IsExpanded == true)
+                {
+                    new Thread(ShowObjects_Expand).Start(node);
+                }
+            }
+        }
+
+
+        private void ShowObjects_Expand(object e)
+        {
+            this.BeginInvoke(new Action(delegate ()
+            {
+                var item = e as TreeNode;
+                var state = item.Tag as ServerState;
+                if (item == null || (state != null && !state.IsReady))
+                    ShowObjects(item);
+            }));
+        }
+            
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CodeBuilder.Common;
 using CodeBuilder.Logic;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace CodeBuilder
     /// <summary>
     /// MessageBox.xaml 的交互逻辑
     /// </summary>
-    public partial class ConnectionDialog : MetroWindow
+    public partial class ConnectionDialog : CustomDialog
     {
 
         public AuthTypes AuthType
@@ -55,22 +56,23 @@ namespace CodeBuilder
             }
         }
 
+        public bool Status { get; set; }
+
         private ConnectionDialog()
         {
             InitializeComponent();
 
             Enum.GetValues(typeof(AuthTypes)).Cast<AuthTypes>().ForEach((s) => cboAuthTypes.Items.Add(s));
             cboAuthTypes.SelectedIndex = 0;
-
         }
-
+        private MetroWindow _window;
         /// <summary>
         /// 用于保存弹出框父类
         /// </summary>
-        private Window _window;
-        public ConnectionDialog(ServerInfo info, Window window)
+        public ConnectionDialog(MetroWindow window, ServerInfo info)
             : this()
         {
+            _window = window;
             if (info != null)
             {
                 AuthType = info.AuthType;
@@ -79,27 +81,10 @@ namespace CodeBuilder
                 Password = info.Password;
                 AuthType = info.AuthType;
             }
-            _window = window;
 
         }
 
-        public bool? UShowDialog()
-        {
-            //蒙板
-            Grid layer = new Grid() { Background = new SolidColorBrush(Color.FromArgb(50, 0, 0, 0)) };
-            //父级窗体原来的内容
-            UIElement original = _window.Content as UIElement;
-            _window.Content = null;
-            //容器Grid
-            Grid container = new Grid();
-            container.Children.Add(original);//放入原来的内容
-            container.Children.Add(layer);//在上面放一层蒙板
-            //将装有原来内容和蒙板的容器赋给父级窗体
-            _window.Content = container;
-            this.Owner = _window;
-            return this.ShowDialog();
-        }
-        private void OnSaveClick(object sender, RoutedEventArgs e)
+        private async void OnSaveClick(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(Server))
             {
@@ -107,20 +92,28 @@ namespace CodeBuilder
                 {
                     if (IsSqlServer2005OrAbove())
                     {
-                        this.DialogResult = true;
+                        Status = true;
+                        await _window.HideMetroDialogAsync(this);
                     }
                 }
                 else
-                    MessageBox.ShowDialog("Please input user name.", this);
+                {
+                    await _window.ShowMessageAsync("Tips", "Please input user name.");
+                    Status = false;
+                }
             }
             else
-                MessageBox.ShowDialog("Please input server.", this);
+            {
+                await _window.ShowMessageAsync("Tips", "Please input server.");
+            }
         }
 
-        private void OnTestConnectionClick(object sender, RoutedEventArgs e)
+        private async void OnTestConnectionClick(object sender, RoutedEventArgs e)
         {
             if (IsSqlServer2005OrAbove())
-                MessageBox.ShowDialog("Connection is successful.", this);
+            {
+                await _window.ShowMessageAsync("Tips", "Connection is successful.");
+            }
         }
 
         private bool IsSqlServer2005OrAbove()
@@ -130,35 +123,22 @@ namespace CodeBuilder
                 var version = QueryEngine.GetServerVersion(GetServerInfo);
                 var is2005OrAbove = version >= 9;
                 if (!is2005OrAbove)
-                    MessageBox.ShowDialog(string.Format("Current version {0}, only SQL Server 2005 or above is supported.", version), this);
+                {
+                    _window.ShowMessageAsync("Tips", string.Format("Current version {0}, only SQL Server 2005 or above is supported.", version));
+                }
                 return is2005OrAbove;
             }
             catch (Exception ex)
             {
-                MessageBox.ShowDialog(ex.Message, this);
+                _window.ShowMessageAsync("Tips", ex.Message);
                 return false;
             }
         }
 
-
-        /// <summary>
-        /// 窗体关闭事件
-        /// </summary>
-        private void Window_Closed(object sender, EventArgs e)
+        private async void OnCloseClick(object sender, RoutedEventArgs e)
         {
-            //容器Grid
-            Grid grid = this.Owner.Content as Grid;
-            //父级窗体原来的内容
-            UIElement original = VisualTreeHelper.GetChild(grid, 0) as UIElement;
-            //将父级窗体原来的内容在容器Grid中移除
-            grid.Children.Remove(original);
-            //赋给父级窗体
-            this.Owner.Content = original;
-        }
-
-        private void Window_Closed(object sender, RoutedEventArgs e)
-        {
-            Close();
+            Status = false;
+            await _window.HideMetroDialogAsync(this);
         }
     }
 }
