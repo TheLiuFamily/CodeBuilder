@@ -141,43 +141,43 @@
                       Header="Sql View"
                       IsExpanded="True" Grid.Row="1" Grid.Column="0">
 
-                <DockPanel Margin="0">
-                    <UTree:MultiSelectTreeView
+            <DockPanel Margin="0">
+                <UTree:MultiSelectTreeView
 				Name="TheTreeView"
 				ItemsSource="{Binding Nodes}"
 				PreviewSelectionChanged="TheTreeView_PreviewSelectionChanged">
 
-                        <UTree:MultiSelectTreeView.ContextMenu>
-                            <ContextMenu>
-                            </ContextMenu>
-                        </UTree:MultiSelectTreeView.ContextMenu>
+                    <UTree:MultiSelectTreeView.ContextMenu>
+                        <ContextMenu>
+                        </ContextMenu>
+                    </UTree:MultiSelectTreeView.ContextMenu>
 
-                        <UTree:MultiSelectTreeView.ItemContainerStyle>
-                            <Style TargetType="{x:Type UTree:MultiSelectTreeViewItem}">
-                                <!--
+                    <UTree:MultiSelectTreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type UTree:MultiSelectTreeViewItem}">
+                            <!--
 						Here the TreeViewItem's properties are connected with the ViewModel class.
 						Basically you would make all MultiSelectTreeViewItem properties accessible
 						in the view model class that you possibly want to get or set in order to
 						determine or manipulate the view from the view model class.
 						-->
-                                <Setter Property="DisplayName" Value="{Binding DisplayName, Mode=TwoWay}"/>
-                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"  />
-                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                                <Setter Property="IsEnabled" Value="{Binding IsEnabled, Mode=TwoWay}"/>
-                                <Setter Property="IsVisible" Value="{Binding IsVisible, Mode=TwoWay}"/>
-                                <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=TwoWay}"/>
-                                <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}"/>
-                                <Setter Property="Remarks" Value="{Binding Remarks, Mode=TwoWay}"/>
-                                <!--
+                            <Setter Property="DisplayName" Value="{Binding DisplayName, Mode=TwoWay}"/>
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"  />
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                            <Setter Property="IsEnabled" Value="{Binding IsEnabled, Mode=TwoWay}"/>
+                            <Setter Property="IsVisible" Value="{Binding IsVisible, Mode=TwoWay}"/>
+                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=TwoWay}"/>
+                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}"/>
+                            <Setter Property="Remarks" Value="{Binding Remarks, Mode=TwoWay}"/>
+                            <!--
 						The ContentTemplateEdit property defines a DataTemplate that is applied
 						instead of the normal viewing DataTemplate (definition below) when the item
 						is in edit mode. If you do not need editing functionality or the default
 						template is good for you, then you can omit this Setter.
 						-->
-                                <Setter Property="ContentTemplateEdit">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <!--
+                            <Setter Property="ContentTemplateEdit">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <!--
 									NOTE:
 									Instead of using a ContentControl which selects an editor template,
 									you could directly define an editor template here which then applies
@@ -190,61 +190,67 @@
 											Padding="2,0,0,0"/>
 									</StackPanel>
 									-->
-                                            <ContentControl
+                                        <ContentControl
 										Content="{Binding}"
 										ContentTemplateSelector="{StaticResource EditorTemplateSelector}"/>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <!--
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <!--
 						The RemarksTemplate property defines a DataTemplate that is applied instead
 						of the normal viewing DataTemplate. If you do not need remarks
 						functionality or the default template is good for you, then you can omit
 						this Setter.
 						-->
-                                <Setter Property="RemarksTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <TextBlock VerticalAlignment="Center" Margin="3,0,0,0" Foreground="#a0ff0000" FontStyle="Italic" Text="{Binding}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding}" Value="{x:Null}">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding}" Value="">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </UTree:MultiSelectTreeView.ItemContainerStyle>
+                            <Setter Property="RemarksTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <TextBlock VerticalAlignment="Center" Margin="3,0,0,0" Foreground="#a0ff0000" FontStyle="Italic" Text="{Binding}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </UTree:MultiSelectTreeView.ItemContainerStyle>
 
-                        <UTree:MultiSelectTreeView.Resources>
-                            <!--
+                    <UTree:MultiSelectTreeView.Resources>
+                        <!--
 					Here the general item appearance is defined, for the ViewModel.TreeItemViewModel type
 					-->
-                            <HierarchicalDataTemplate DataType="{x:Type vm:TreeNode}" ItemsSource="{Binding Nodes}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image VerticalAlignment="Center" Source="{Binding Icon}" Height="16" Width="16" Stretch="Fill"  Margin="0,0,2,2"></Image>
-                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Padding="4,0,2,0"/>
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </UTree:MultiSelectTreeView.Resources>
-                    </UTree:MultiSelectTreeView>
-                </DockPanel>
+                        <HierarchicalDataTemplate DataType="{x:Type vm:TreeNode}" ItemsSource="{Binding Nodes}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image VerticalAlignment="Center" Source="{Binding Icon}" Height="16" Width="16" Stretch="Fill"  Margin="0,0,2,2"></Image>
+                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Padding="4,0,2,0"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </UTree:MultiSelectTreeView.Resources>
+                </UTree:MultiSelectTreeView>
+            </DockPanel>
         </Expander>
 
         <Expander Margin="0"
                       Header="_Generic theme TabControls"
                       IsExpanded="True" Grid.Row="1" Grid.Column="1">
-            <ScrollViewer  Margin="0" Padding="0" >
-            </ScrollViewer>
+            <StackPanel>
+
+                    <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
+                                                            Controls:TabControlHelper.Underlined ="SelectedTabItem"
+                                                            TabStripPlacement="Top" >
+                </Controls:MetroAnimatedSingleRowTabControl>
+
+            </StackPanel>
         </Expander>
     </Grid>
 

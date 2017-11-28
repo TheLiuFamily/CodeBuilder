@@ -110,11 +110,7 @@ namespace CodeBuilder
         private int _analysisPrevColIndex = -1;
         private ListSortDirection _analysisPrevSortDirection = ListSortDirection.Ascending;
         #endregion
-        //private void btnTest_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var tableInfo = DbHelper.GetDbNewTable(ConfigurationManager.AppSettings["ConnStr"].ToString(), "NORTHWND", "Customers");
-        //    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
-        //}
+
         private readonly ServerInfo _server = null;
         private ServerInfo info;
 
@@ -129,7 +125,8 @@ namespace CodeBuilder
             //DialogManager.DialogOpened += dialogManagerOnDialogOpened;
 
             EventHandler<DialogStateChangedEventArgs> dialogManagerOnDialogClosed = null;
-            dialogManagerOnDialogClosed = async (o, args) => {
+            dialogManagerOnDialogClosed = async (o, args) =>
+            {
                 DialogManager.DialogClosed -= dialogManagerOnDialogClosed;
                 if (dlg.Status)
                 {
@@ -228,6 +225,24 @@ namespace CodeBuilder
             }
         }
 
+        private void InitTabItem(string head, string code)
+        {
+            foreach (MetroTabItem i in tab.Items)
+            {
+                if (i.Header as string == head)
+                {
+                    i.IsSelected = true;
+                    return;
+                }
+            }
+            var item = new MetroTabItem { Header = head};
+            var textBlock = new RichTextBox { Margin = new Thickness { Top = 5 }, HorizontalScrollBarVisibility=ScrollBarVisibility.Auto, VerticalScrollBarVisibility=ScrollBarVisibility.Auto };
+            textBlock.AppendText(code);
+            item.Content = textBlock;
+            textBlock.Height = 800;
+            tab.Items.Add(item);
+            item.IsSelected = true;
+        }
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
         {
             new Thread(ShowObjects).Start(e);
@@ -529,12 +544,21 @@ namespace CodeBuilder
 
         public void ExpandTreeView(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IsExpanded")
+            var node = sender as TreeNode;
+            if (e.PropertyName == "IsExpanded" && node.IsExpanded == true)
             {
-                var node = sender as TreeNode;
-                if (node.IsExpanded == true)
+                new Thread(ShowObjects_Expand).Start(node);
+            }
+            else if (e.PropertyName == "IsSelected" && node.IsSelected == true)
+            {
+                var state = node.Tag as ServerState;
+                if (state.Key == KeyTable)
                 {
-                    new Thread(ShowObjects_Expand).Start(node);
+                    var name = node.DisplayName.Split('.')[1];
+                    var tableInfo = DbHelper.GetDbNewTable(ConfigurationManager.AppSettings["ConnStr"].ToString(), "NORTHWND", name);
+                    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
+
+                    InitTabItem(name, codeDataAccess);
                 }
             }
         }
@@ -550,6 +574,10 @@ namespace CodeBuilder
                     ShowObjects(item);
             }));
         }
-            
+        //private void btnTest_Click(object sender, RoutedEventArgs e)
+        //{
+        //    
+        //    
+        //}     
     }
 }
