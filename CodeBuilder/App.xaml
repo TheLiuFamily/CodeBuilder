@@ -8,9 +8,10 @@
             <Style TargetType="Button" x:Key="btnSkinStyle">
                 <Setter Property="Foreground"  Value="Blue"/>
                 <Setter Property="FontFamily" Value="CourierNew"/>
-                <Setter Property="Width" Value="45"/>
-                <Setter Property="Height" Value="45"/>
+                <Setter Property="Width" Value="16"/>
+                <Setter Property="Height" Value="16"/>
                 <Setter Property="Margin" Value="5"/>
+                <Setter Property="Content" Value="{StaticResource AppThemeMenuIcon}" />
             </Style>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />

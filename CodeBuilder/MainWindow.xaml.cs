@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -191,39 +192,91 @@ namespace CodeBuilder
 
         private async void ShowMessageDialog(string message)
         {
-            // This demo runs on .Net 4.0, but we're using the Microsoft.Bcl.Async package so we have async/await support
-            // The package is only used by the demo and not a dependency of the library!
             var mySettings = new MetroDialogSettings()
             {
                 FirstAuxiliaryButtonText = "OK",
                 ColorScheme = MetroDialogOptions.ColorScheme
             };
-
             MessageDialogResult result = await this.ShowMessageAsync("Tips", message,
                 MessageDialogStyle.Affirmative, mySettings);
-
-            //if (result != MessageDialogResult.FirstAuxiliary)
-            //    await this.ShowMessageAsync("Result", "You said: " + (result == MessageDialogResult.Affirmative ? mySettings.AffirmativeButtonText : mySettings.NegativeButtonText +
-            //        Environment.NewLine + Environment.NewLine + "This dialog will follow the Use Accent setting."));
         }
 
         public MainWindow()
         {
             _viewModel = new MainWindowViewModel(DialogCoordinator.Instance);
 
-            DataContext = _viewModel;
 
             InitializeComponent();
-
+            DataContext = _viewModel;
+            InitThemeAndSkin();
+            themePanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeThemeAndSkin));
+            skinPanel.AddHandler(Button.ClickEvent, new RoutedEventHandler(ChangeThemeAndSkin));
             TreeNode.PropertyChanged_Static += ExpandTreeView;
             AccentColorMenuData.ChangeTheme(ConfigurationManager.AppSettings["Theme"], ConfigurationManager.AppSettings["Skin"]);
             btnLogin.Click += LoginSql;
-
+            btnTheme.Click += (s, e) => {
+                themeUI.IsOpen = true;
+            };
+            btnSkin.Click += (s, e) =>
+            {
+                skinUI.IsOpen = true;
+            };
             if (Settings.Instance.Servers.FirstOrDefault() != null)
             {
                 LoadServer(Settings.Instance.Servers.First());
             }
         }
+        /// <summary>  
+        /// 实现换肤  
+        /// </summary>  
+        private void ChangeThemeAndSkin(object obj, RoutedEventArgs e)
+        {
+            var theme = ConfigurationManager.AppSettings["Theme"];
+            var skin = ConfigurationManager.AppSettings["Skin"];
+            if (e.OriginalSource is Button)
+            {
+                if (obj == themePanel)
+                    theme = (e.OriginalSource as Button).Name;
+                else
+                    skin = (e.OriginalSource as Button).Name;
+                AccentColorMenuData.ChangeTheme(theme, skin);
+            }
+        }
+        
+        /// <summary>  
+        /// 初始化所有皮肤控件  
+        /// </summary>  
+        private void InitThemeAndSkin()
+        {
+
+
+            Style btnStyle = App.Current.FindResource("btnSkinStyle") as Style;
+            foreach (var theme in _viewModel.AppThemes)
+            {
+                //新建换肤按钮  
+                Brush scb = theme.ColorBrush;
+                Button btnskin = new Button
+                {
+                    Style = btnStyle,
+                    Name = theme.Name,
+                    Background = scb
+                };
+                themePanel.Children.Add(btnskin);
+            }
+            foreach (var accent in _viewModel.AccentColors)
+            {
+                //新建换肤按钮  
+                Brush scb = accent.ColorBrush;
+                Button btnskin = new Button
+                {
+                    Style = btnStyle,
+                    Name = accent.Name,
+                    Background = scb
+                };
+                skinPanel.Children.Add(btnskin);
+            }
+        }
+
 
         private void InitTabItem(string head, string code)
         {
@@ -235,11 +288,11 @@ namespace CodeBuilder
                     return;
                 }
             }
-            var item = new MetroTabItem { Header = head};
-            var textBlock = new RichTextBox { Margin = new Thickness { Top = 5 }, HorizontalScrollBarVisibility=ScrollBarVisibility.Auto, VerticalScrollBarVisibility=ScrollBarVisibility.Auto };
-            textBlock.AppendText(code);
-            item.Content = textBlock;
-            textBlock.Height = 800;
+            var item = new MetroTabItem { Header = head };
+            var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
+            rich.Document = new FlowDocument { LineHeight = 1 };
+            rich.AppendText(code);
+            item.Content = rich;
             tab.Items.Add(item);
             item.IsSelected = true;
         }
