@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CodeBuilder.Common;
+using CodeBuilder.Logic;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,10 +15,10 @@ namespace CodeBuilder
     /// </summary>
     class DbHelper
     {
-        public static DbNewTable GetDbNewTable(string connectionString, string database, string table)
+        public static DbNewTable GetDbNewTable(ServerInfo info)
         {
-            var dbTable = GetDbTables(connectionString, database, table).First();
-            var dbColumList = GetDbColumns(connectionString, database, table);
+            var dbTable = GetDbTables(info).First();
+            var dbColumList = GetDbColumns(info);
             return new DbNewTable
             {
                 DbTableInfo = dbTable,
@@ -25,11 +27,12 @@ namespace CodeBuilder
         }
         #region GetDbTables
 
-        public static List<DbTable> GetDbTables(string connectionString, string database, string tables = null)
+        public static List<DbTable> GetDbTables(ServerInfo info)
         {
-            if (!string.IsNullOrEmpty(tables))
+            var tables = info.Datatable;
+            if (!string.IsNullOrEmpty(info.Datatable))
             {
-                tables = string.Format(" and obj.name in ('{0}')", tables.Replace(",", "','"));
+                tables = string.Format(" and obj.name in ('{0}')", info.Datatable.Replace(",", "','"));
             }
             #region SQL
             string sql = string.Format(@"SELECT
@@ -50,9 +53,9 @@ namespace CodeBuilder
                                      LEFT JOIN sys.extended_properties g ON   obj.object_id = g.major_id
                                                  AND g.minor_id = 0
                                     where type='U' {1}
-                                    order by obj.name", database, tables);
+                                    order by obj.name", info.Database, tables);
             #endregion
-            DataTable dt = GetDataTable(connectionString, sql);
+            DataTable dt = GetDataTable(info, sql);
             return dt.Rows.Cast<DataRow>().Select(row => new DbTable
             {
                 TableName = row.Field<string>("tablename"),
@@ -66,7 +69,7 @@ namespace CodeBuilder
 
         #region GetDbColumns
 
-        public static List<DbColumn> GetDbColumns(string connectionString, string database, string tableName, string schema = "dbo")
+        public static List<DbColumn> GetDbColumns(ServerInfo info, string schema = "dbo")
         {
             #region SQL
             string sql = string.Format(@"
@@ -104,10 +107,10 @@ namespace CodeBuilder
                                     left join {0}.sys.extended_properties prop on colm.object_id=prop.major_id and colm.column_id=prop.minor_id
                                     LEFT JOIN indexCTE ON colm.column_id=indexCTE.column_id AND colm.object_id=indexCTE.object_id                                       
                                     where colm.object_id=OBJECT_ID(@tableName)
-                                    order by colm.column_id", database);
+                                    order by colm.column_id", info.Database);
             #endregion
-            SqlParameter param = new SqlParameter("@tableName", SqlDbType.NVarChar, 100) { Value = string.Format("{0}.{1}.{2}", database, schema, tableName) };
-            DataTable dt = GetDataTable(connectionString, sql, param);
+            SqlParameter param = new SqlParameter("@tableName", SqlDbType.NVarChar, 100) { Value = string.Format("{0}.{1}.{2}", info.Database, schema, info.Datatable) };
+            DataTable dt = GetDataTable(info, sql, param);
             return dt.Rows.Cast<DataRow>().Select(row => new DbColumn()
             {
                 ColumnID = row.Field<int>("ColumnID"),
@@ -127,9 +130,9 @@ namespace CodeBuilder
 
         #region GetDataTable
 
-        public static DataTable GetDataTable(string connectionString, string commandText, params SqlParameter[] parms)
+        public static DataTable GetDataTable(ServerInfo info, string commandText, params SqlParameter[] parms)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlConnection connection = SqlHelper.CreateNewConnection(info))
             {
                 SqlCommand command = connection.CreateCommand();
                 command.CommandText = commandText;

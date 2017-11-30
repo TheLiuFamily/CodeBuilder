@@ -14,8 +14,8 @@
 	Title="CodeBuilder"
 	Height="488" Width="1000"
 	Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
-	ResizeMode="CanResizeWithGrip">
-
+    Icon="Images/CodeBuilder.ico" ShowIconOnTitleBar="False" 
+    >
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -36,9 +36,9 @@
                      Fill="{Binding ColorBrush, Mode=OneWay}" />
 
 
-           
-                
-                    <Style x:Key="AppThemeMenuItemStyle"
+
+
+            <Style x:Key="AppThemeMenuItemStyle"
                    BasedOn="{StaticResource MetroMenuItem}"
                    TargetType="{x:Type MenuItem}">
                 <Setter Property="Command" Value="{Binding ChangeAccentCommand}" />
@@ -95,20 +95,24 @@
 
             <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
-
         </ResourceDictionary>
     </Window.Resources>
     <Controls:MetroWindow.LeftWindowCommands>
-        <Controls:WindowCommands ShowLastSeparator="False">
-            <Button>
+        <Controls:WindowCommands ShowSeparators="False">
+            <Button  Click="LaunchWeibo" ToolTip="Show Weibo">
                 <IconPacks:PackIconModern Width="22"
                                           Height="22"
-                                          Kind="PageCode" />
+                                          Kind="SocialTwitter" />
+            </Button>
+            <Button Click="LaunchMahAppsOnGitHub" ToolTip="CodeBuilder on GitHub">
+                <IconPacks:PackIconModern Width="22"
+                                          Height="22"
+                                          Kind="SocialGithubOctocat" />
             </Button>
         </Controls:WindowCommands>
     </Controls:MetroWindow.LeftWindowCommands>
     <Controls:MetroWindow.RightWindowCommands>
-        <Controls:WindowCommands ShowLastSeparator="False">
+        <Controls:WindowCommands ShowSeparators="False">
             <Button
                     ToolTip="login sql" x:Name="btnLogin">
                 <IconPacks:PackIconModern Width="22"
@@ -131,7 +135,7 @@
     </Controls:MetroWindow.RightWindowCommands>
 
     <Grid>
-       
+
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -144,17 +148,17 @@
         <Expander Margin="0"
                       Header="Sql View"
                       IsExpanded="True" Grid.Row="1" Grid.Column="0">
-            
+
 
             <DockPanel Margin="0">
                 <Popup x:Name="themeUI" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnTheme}" 
              StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" Placement="Bottom">
-                        <StackPanel x:Name="themePanel"/>
+                    <WrapPanel x:Name="themePanel" Background="{DynamicResource AccentColorBrush}"/>
                 </Popup>
 
-                <Popup x:Name="skinUI" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnTheme}" 
+                <Popup x:Name="skinUI" Margin="0" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=btnSkin}" 
              StaysOpen="False" SnapsToDevicePixels="True" ClipToBounds="True" Placement="Bottom">
-                    <StackPanel x:Name="skinPanel"/>
+                    <WrapPanel x:Name="skinPanel" Background="{DynamicResource AccentColorBrush}" Width="250"/>
                 </Popup>
                 <UTree:MultiSelectTreeView
 				Name="TheTreeView"
@@ -259,7 +263,7 @@
                       IsExpanded="True" Grid.Row="1" Grid.Column="1">
             <DockPanel>
 
-                    <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
+                <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
                                                             Controls:TabControlHelper.Underlined ="SelectedTabItem"
                                                             TabStripPlacement="Top" >
                 </Controls:MetroAnimatedSingleRowTabControl>

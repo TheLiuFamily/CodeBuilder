@@ -259,7 +259,8 @@ namespace CodeBuilder
                 {
                     Style = btnStyle,
                     Name = theme.Name,
-                    Background = scb
+                    Background = scb,
+                    Content = theme.Name
                 };
                 themePanel.Children.Add(btnskin);
             }
@@ -271,7 +272,8 @@ namespace CodeBuilder
                 {
                     Style = btnStyle,
                     Name = accent.Name,
-                    Background = scb
+                    Background = scb,
+                    Content = accent.Name
                 };
                 skinPanel.Children.Add(btnskin);
             }
@@ -288,7 +290,7 @@ namespace CodeBuilder
                     return;
                 }
             }
-            var item = new MetroTabItem { Header = head };
+            var item = new MetroTabItem { Header = head};
             var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
             rich.Document = new FlowDocument { LineHeight = 1 };
             rich.AppendText(code);
@@ -608,7 +610,10 @@ namespace CodeBuilder
                 if (state.Key == KeyTable)
                 {
                     var name = node.DisplayName.Split('.')[1];
-                    var tableInfo = DbHelper.GetDbNewTable(ConfigurationManager.AppSettings["ConnStr"].ToString(), "NORTHWND", name);
+                    var root = GetRootNode(node);
+                    var serverInfo = root.Tag as ServerState;
+                    serverInfo.Datatable = name;
+                    var tableInfo = DbHelper.GetDbNewTable(serverInfo);
                     string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
 
                     InitTabItem(name, codeDataAccess);
@@ -627,10 +632,14 @@ namespace CodeBuilder
                     ShowObjects(item);
             }));
         }
-        //private void btnTest_Click(object sender, RoutedEventArgs e)
-        //{
-        //    
-        //    
-        //}     
+        private void LaunchMahAppsOnGitHub(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/TheLiuFamily/CodeBuilder");
+        }
+        private void LaunchWeibo(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://weibo.com/u/1892146223");
+        }
+
     }
 }

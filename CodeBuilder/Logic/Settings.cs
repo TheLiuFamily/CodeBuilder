@@ -93,6 +93,7 @@ namespace CodeBuilder.Logic
         public bool IsEncrypted { get; set; }
         public string Server { get; set; }
         public string Database { get; set; }
+        public string Datatable { get; set; }
         internal bool IsAzure { get; set; }
 
         public ServerInfo()
