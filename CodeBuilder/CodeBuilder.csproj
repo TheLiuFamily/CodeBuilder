@@ -158,9 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\CodeBuilder.ico" />
-    <Content Include="Template\DataAccess.tt">
+    <Content Include="Template\Model.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataAccess.txt</LastGenOutput>
+      <LastGenOutput>Model.txt</LastGenOutput>
     </Content>
     <Resource Include="Images\select_all_11.png" />
     <Resource Include="Images\select_none_11.png" />

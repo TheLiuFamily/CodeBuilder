@@ -280,23 +280,22 @@ namespace CodeBuilder
         }
 
 
-        private void InitTabItem(string head, string code)
+        private void InitTabItem(List<TemplateData> list)
         {
-            foreach (MetroTabItem i in tab.Items)
+            tab.Items.Clear();
+            foreach(var l in list)
             {
-                if (i.Header as string == head)
-                {
-                    i.IsSelected = true;
-                    return;
-                }
+                var item = new MetroTabItem { Header = l.Name };
+                var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
+                rich.Document = new FlowDocument { LineHeight = 1 };
+                rich.AppendText(l.Content);
+                item.Content = rich;
+                tab.Items.Add(item);
             }
-            var item = new MetroTabItem { Header = head};
-            var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
-            rich.Document = new FlowDocument { LineHeight = 1 };
-            rich.AppendText(code);
-            item.Content = rich;
-            tab.Items.Add(item);
-            item.IsSelected = true;
+            if(tab.Items.Count > 0)
+            {
+                (tab.Items[0] as MetroTabItem).IsSelected = true;
+            }
         }
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
         {
@@ -614,9 +613,8 @@ namespace CodeBuilder
                     var serverInfo = root.Tag as ServerState;
                     serverInfo.Datatable = name;
                     var tableInfo = DbHelper.GetDbNewTable(serverInfo);
-                    string codeDataAccess = CreateCode.CreateDataAccessClass(tableInfo);
-
-                    InitTabItem(name, codeDataAccess);
+                    var list = CreateCode.CreateTemplateClass(tableInfo);
+                    InitTabItem(list);
                 }
             }
         }
