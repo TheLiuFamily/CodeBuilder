@@ -114,6 +114,12 @@
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands ShowSeparators="False">
             <Button
+                    ToolTip="save T4 tempalte" x:Name="btnSave">
+                <IconPacks:PackIconModern Width="22"
+                                          Height="22"
+                                          Kind="EditBox" />
+            </Button>
+            <Button
                     ToolTip="login sql" x:Name="btnLogin">
                 <IconPacks:PackIconModern Width="22"
                                           Height="22"
@@ -257,18 +263,31 @@
                 </UTree:MultiSelectTreeView>
             </DockPanel>
         </Expander>
-
         <Expander Margin="0"
+                      Header="T4"
+                      IsExpanded="True"    Grid.Row="1" Grid.Column="1">
+            <ScrollViewer>
+                <StackPanel>
+                    <Expander Margin="0"
                       Header="T4 Code View"
-                      IsExpanded="True" Grid.Row="1" Grid.Column="1">
-            <DockPanel>
-
-                <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
+                      IsExpanded="True" >
+                        <DockPanel>
+                            <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
                                                             Controls:TabControlHelper.Underlined ="SelectedTabItem"
                                                             TabStripPlacement="Top" >
-                </Controls:MetroAnimatedSingleRowTabControl>
-
-            </DockPanel>
+                            </Controls:MetroAnimatedSingleRowTabControl>
+                        </DockPanel>
+                    </Expander>
+                    <Expander Margin="0" Header="T4 Code Edit" IsExpanded="False" >
+                        <DockPanel>
+                            <Controls:MetroAnimatedSingleRowTabControl  x:Name="tabT4"
+                                                            Controls:TabControlHelper.Underlined ="SelectedTabItem"
+                                                            TabStripPlacement="Top">
+                            </Controls:MetroAnimatedSingleRowTabControl>
+                        </DockPanel>
+                    </Expander>
+                </StackPanel>
+            </ScrollViewer>
         </Expander>
     </Grid>
 

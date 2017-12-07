@@ -29,10 +29,10 @@
         <TextBox x:Name="txtUserName" Grid.Column="1" Grid.Row="2" Margin="3" Text="sa"></TextBox>
         <Label Content="Password:" Grid.Column="0" Grid.Row="3"></Label>
         <PasswordBox x:Name="txtPassword" Grid.Column="1" Grid.Row="3" Margin="3" Password="123456"></PasswordBox>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Margin="230,8,8,0">
-            <Button x:Name="btnTest" Content="Test Connection" Margin="2" Click="OnTestConnectionClick"></Button>
-            <Button x:Name="btnSave" Content="Save" Margin="2" Width="60" Click="OnSaveClick"></Button>
-            <Button x:Name="btnCancel" Content="Cancel" Margin="2" Width="60" Click="OnCloseClick"></Button>
-        </DockPanel>
+        <StackPanel Grid.ColumnSpan="2" Grid.Row="4"  Orientation="Horizontal" >
+            <Button x:Name="btnTest" Content="Test Connection" Margin="2" Click="OnTestConnectionClick"  Height="30"></Button>
+            <Button x:Name="btnSave" Content="Save" Margin="2" Width="60" Click="OnSaveClick" Height="30"></Button>
+            <Button x:Name="btnCancel" Content="Cancel" Margin="2" Width="60" Click="OnCloseClick"  Height="30"></Button>
+        </StackPanel>
     </Grid>
 </Dialog:CustomDialog>

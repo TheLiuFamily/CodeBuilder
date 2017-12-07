@@ -179,6 +179,24 @@ namespace CodeBuilder
             await dlg.WaitUntilUnloadedAsync();
 
         }
+
+        public async void SaveData(object sender, RoutedEventArgs e)
+        {
+            var list = new List<TemplateData>();
+            for(int i = 0; i < tabT4.Items.Count; i++)
+            {
+                var t = tabT4.Items[i] as MetroTabItem;
+                var rich = t.Content as RichTextBox;
+                TextRange a = new TextRange(rich.Document.ContentStart, rich.Document.ContentEnd);
+                list.Add(new TemplateData
+                {
+                    Name = t.Header.ToString(),
+                    Content = a.Text
+                });
+            }
+            CreateCode.SaveTemplateData(list);
+            ShowMessageDialog("保存成功！");
+        }
         private void LoadServer(ServerInfo info)
         {
             _currentServerInfo = info;
@@ -214,6 +232,7 @@ namespace CodeBuilder
             TreeNode.PropertyChanged_Static += ExpandTreeView;
             AccentColorMenuData.ChangeTheme(ConfigurationManager.AppSettings["Theme"], ConfigurationManager.AppSettings["Skin"]);
             btnLogin.Click += LoginSql;
+            btnSave.Click += SaveData;
             btnTheme.Click += (s, e) => {
                 themeUI.IsOpen = true;
             };
@@ -225,6 +244,9 @@ namespace CodeBuilder
             {
                 LoadServer(Settings.Instance.Servers.First());
             }
+
+            InitTabItem(CreateCode.GetTemplateData(), tabT4);
+
         }
         /// <summary>  
         /// 实现换肤  
@@ -280,9 +302,9 @@ namespace CodeBuilder
         }
 
 
-        private void InitTabItem(List<TemplateData> list)
+        private void InitTabItem(List<TemplateData> list, MetroAnimatedSingleRowTabControl t)
         {
-            tab.Items.Clear();
+            t.Items.Clear();
             foreach(var l in list)
             {
                 var item = new MetroTabItem { Header = l.Name };
@@ -290,11 +312,11 @@ namespace CodeBuilder
                 rich.Document = new FlowDocument { LineHeight = 1 };
                 rich.AppendText(l.Content);
                 item.Content = rich;
-                tab.Items.Add(item);
+                t.Items.Add(item);
             }
-            if(tab.Items.Count > 0)
+            if(t.Items.Count > 0)
             {
-                (tab.Items[0] as MetroTabItem).IsSelected = true;
+                (t.Items[0] as MetroTabItem).IsSelected = true;
             }
         }
         private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
@@ -614,7 +636,7 @@ namespace CodeBuilder
                     serverInfo.Datatable = name;
                     var tableInfo = DbHelper.GetDbNewTable(serverInfo);
                     var list = CreateCode.CreateTemplateClass(tableInfo);
-                    InitTabItem(list);
+                    InitTabItem(list,tab);
                 }
             }
         }
