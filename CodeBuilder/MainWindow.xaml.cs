@@ -2,6 +2,8 @@
 using CodeBuilder.Logic;
 using CodeBuilder.Models;
 using CodeBuilder.ViewModel;
+using ICSharpCode.AvalonEdit;
+using ICSharpCode.AvalonEdit.Highlighting;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -186,12 +188,11 @@ namespace CodeBuilder
             for(int i = 0; i < tabT4.Items.Count; i++)
             {
                 var t = tabT4.Items[i] as MetroTabItem;
-                var rich = t.Content as RichTextBox;
-                TextRange a = new TextRange(rich.Document.ContentStart, rich.Document.ContentEnd);
+                var textEditor = t.Content as TextEditor;
                 list.Add(new TemplateData
                 {
                     Name = t.Header.ToString(),
-                    Content = a.Text
+                    Content = textEditor.Text
                 });
             }
             CreateCode.SaveTemplateData(list);
@@ -308,10 +309,22 @@ namespace CodeBuilder
             foreach(var l in list)
             {
                 var item = new MetroTabItem { Header = l.Name };
-                var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
-                rich.Document = new FlowDocument { LineHeight = 1 };
-                rich.AppendText(l.Content);
-                item.Content = rich;
+                var textEditor = new TextEditor
+                {
+                    FontFamily = new FontFamily("Consolas"),
+                    FontSize = 16,
+                    SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("C#"),
+                    ShowLineNumbers = true,
+                    VerticalScrollBarVisibility=ScrollBarVisibility.Auto,
+                    HorizontalScrollBarVisibility= ScrollBarVisibility.Auto,
+                    Margin= new Thickness { Top = 5 }
+                };
+                //var rich = new RichTextBox { Margin = new Thickness { Top = 5 } };
+                //rich.Document = new FlowDocument { LineHeight = 1 };
+                //rich.AppendText(l.Content);
+                //item.Content = rich;
+                textEditor.Text = l.Content;
+                item.Content = textEditor;
                 t.Items.Add(item);
             }
             if(t.Items.Count > 0)

@@ -1,5 +1,6 @@
 ﻿<Controls:MetroWindow
     xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:AvalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
     xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
     xmlns:IconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 	x:Class="CodeBuilder.MainWindow"
