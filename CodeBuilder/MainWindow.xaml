@@ -267,11 +267,10 @@
         <Expander Margin="0"
                       Header="T4"
                       IsExpanded="True"    Grid.Row="1" Grid.Column="1">
-            <ScrollViewer>
-                <StackPanel>
+                <DockPanel>
                     <Expander Margin="0"
                       Header="T4 Code View"
-                      IsExpanded="True" >
+                      IsExpanded="False" DockPanel.Dock="Top">
                         <DockPanel>
                             <Controls:MetroAnimatedSingleRowTabControl  x:Name="tab"
                                                             Controls:TabControlHelper.Underlined ="SelectedTabItem"
@@ -279,7 +278,7 @@
                             </Controls:MetroAnimatedSingleRowTabControl>
                         </DockPanel>
                     </Expander>
-                    <Expander Margin="0" Header="T4 Code Edit" IsExpanded="False" >
+                <Expander Margin="0" Header="T4 Code Edit" IsExpanded="False">
                         <DockPanel>
                             <Controls:MetroAnimatedSingleRowTabControl  x:Name="tabT4"
                                                             Controls:TabControlHelper.Underlined ="SelectedTabItem"
@@ -287,8 +286,7 @@
                             </Controls:MetroAnimatedSingleRowTabControl>
                         </DockPanel>
                     </Expander>
-                </StackPanel>
-            </ScrollViewer>
+                </DockPanel>
         </Expander>
     </Grid>
 
